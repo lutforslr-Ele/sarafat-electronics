@@ -1057,6 +1057,7 @@ function checkPurchaseProdId(){
     var suggestion=suggestNextProdId();
     hint.innerHTML=(last?'সর্বশেষ ব্যবহৃত আইডি: <b>'+last+'</b>':'')+(suggestion?' • পরবর্তী আইডি সাজেশন: <b>'+suggestion+'</b>':'');
     hint.style.color='var(--muted)';
+    nameInput.value='';
     return;
   }
   var idx=findStockIdx(val);
@@ -1224,7 +1225,7 @@ function checkStockProdId(){
   var hint=document.getElementById('st-id-hint');
   var val=(idInput.value||'').trim();
   if(!hint) return;
-  if(!val){ hint.innerHTML=''; return; }
+  if(!val){ hint.innerHTML=''; nameInput.value=''; return; }
   var idx=findStockIdx(val);
   if(idx>=0){
     var existing=window.D.stock[idx];
