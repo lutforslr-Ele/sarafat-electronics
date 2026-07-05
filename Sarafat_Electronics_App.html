@@ -374,6 +374,7 @@ tbody tr:hover{background:var(--surface2);}
         <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">এই মাসের মোট কমিশন</div><div class="stat-value" id="bk-month-commission">৳ ০</div><div class="stat-icon">📈</div></div>
         <div class="stat-card" style="--c:#00b0d7"><div class="stat-label">মোট ক্যাশ-ইন/আউট (এই মাস)</div><div class="stat-value" id="bk-month-volume">৳ ০</div><div class="stat-icon">📱</div></div>
         <div class="stat-card" style="--c:#ffaa00"><div class="stat-label">সর্বমোট কমিশন আয়</div><div class="stat-value" id="bk-all-commission">৳ ০</div><div class="stat-icon">🏆</div></div>
+        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">মোট বাকি (ফ্লেক্সিলোড/বিকাশ)</div><div class="stat-value" id="bk-total-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
       </div>
       <div class="panel">
         <div class="panel-title">📱 নতুন বিকাশ/বিল লেনদেন যোগ করুন</div>
@@ -384,13 +385,15 @@ tbody tr:hover{background:var(--surface2);}
               <select id="bk-type">
                 <option value="cashin">📲 বিকাশ ক্যাশ-ইন</option>
                 <option value="cashout">💸 বিকাশ ক্যাশ-আউট</option>
+                <option value="flexiload">📶 ফ্লেক্সিলোড</option>
                 <option value="electricity">💡 বিদ্যুৎ বিল কালেকশন</option>
                 <option value="otherbill">🧾 অন্যান্য বিল (গ্যাস/পানি/ইন্টারনেট)</option>
               </select>
             </div>
             <div class="form-group"><label>লেনদেনের মোট পরিমাণ (৳)</label><input type="number" id="bk-amount" min="0" placeholder="কাস্টমারের টাকার পরিমাণ" required></div>
             <div class="form-group"><label>কমিশন / লাভ (৳)</label><input type="number" id="bk-commission" min="0" step="0.01" placeholder="আপনি যা লাভ পেলেন" required></div>
-            <div class="form-group"><label>গ্রাহকের নাম</label><input type="text" id="bk-customer" placeholder="ঐচ্ছিক"></div>
+            <div class="form-group"><label>নগদ যা পেয়েছেন (৳)</label><input type="number" id="bk-paid" min="0" placeholder="খালি রাখলে পুরোটা পরিশোধিত ধরা হবে"></div>
+            <div class="form-group"><label>গ্রাহকের নাম</label><input type="text" id="bk-customer" placeholder="বাকি থাকলে অবশ্যই দিন"></div>
             <div class="form-group"><label>গ্রাহকের ফোন</label><input type="text" id="bk-phone" placeholder="ঐচ্ছিক"></div>
             <div class="form-group full"><label>নোট</label><input type="text" id="bk-note" placeholder="ঐচ্ছিক বিবরণ"></div>
           </div>
@@ -411,6 +414,10 @@ tbody tr:hover{background:var(--surface2);}
         <div class="table-wrap"><table><thead><tr><th>ধরন</th><th>লেনদেনের পরিমাণ</th><th>কমিশন</th></tr></thead><tbody id="bk-summary-body"></tbody></table></div>
       </div>
       <div class="panel">
+        <div class="panel-title">⚠️ বিকাশ/ফ্লেক্সিলোড বাকির তালিকা</div>
+        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>গ্রাহক</th><th>ফোন</th><th>মোট</th><th>জমা</th><th>বাকি</th><th>অ্যাকশন</th></tr></thead><tbody id="bk-due-body"></tbody></table></div>
+      </div>
+      <div class="panel">
         <div class="panel-title">📋 সব লেনদেনের তালিকা</div>
         <div class="toolbar">
           <div class="search-box"><input type="text" id="bk-search" placeholder="গ্রাহক বা নোট খুঁজুন..." oninput="renderBkash()"></div>
@@ -418,11 +425,17 @@ tbody tr:hover{background:var(--surface2);}
             <option value="">সব ধরন</option>
             <option value="cashin">বিকাশ ক্যাশ-ইন</option>
             <option value="cashout">বিকাশ ক্যাশ-আউট</option>
+            <option value="flexiload">ফ্লেক্সিলোড</option>
             <option value="electricity">বিদ্যুৎ বিল কালেকশন</option>
             <option value="otherbill">অন্যান্য বিল</option>
           </select>
+          <select id="bk-due-filter" onchange="renderBkash()" style="width:auto;">
+            <option value="">সব এন্ট্রি</option>
+            <option value="due">শুধু বাকি</option>
+            <option value="paid">শুধু পরিশোধিত</option>
+          </select>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>লেনদেন</th><th>কমিশন</th><th>গ্রাহক</th><th>ফোন</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="bk-body"></tbody></table></div>
+        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>লেনদেন</th><th>কমিশন</th><th>জমা</th><th>বাকি</th><th>গ্রাহক</th><th>ফোন</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="bk-body"></tbody></table></div>
       </div>
     </div>
 
@@ -1356,8 +1369,8 @@ function renderHousehold(){
 }
 
 // ══ BKASH & BILL SERVICE ══
-var BK_LABELS={cashin:'📲 ক্যাশ-ইন',cashout:'💸 ক্যাশ-আউট',electricity:'💡 বিদ্যুৎ বিল',otherbill:'🧾 অন্যান্য বিল'};
-var BK_BADGE={cashin:'badge-green',cashout:'badge-blue',electricity:'badge-yellow',otherbill:'badge-red'};
+var BK_LABELS={cashin:'📲 ক্যাশ-ইন',cashout:'💸 ক্যাশ-আউট',flexiload:'📶 ফ্লেক্সিলোড',electricity:'💡 বিদ্যুৎ বিল',otherbill:'🧾 অন্যান্য বিল'};
+var BK_BADGE={cashin:'badge-green',cashout:'badge-blue',flexiload:'badge-yellow',electricity:'badge-yellow',otherbill:'badge-red'};
 var bkRange='month';
 function setBkRange(r){
   bkRange=r;
@@ -1373,12 +1386,29 @@ function bkInSelectedRange(dateStr){
 }
 function addBkash(e){
   e.preventDefault();
-  var item={ id:Date.now(), date:document.getElementById('bk-date').value, type:document.getElementById('bk-type').value, amount:Number(document.getElementById('bk-amount').value)||0, commission:Number(document.getElementById('bk-commission').value)||0, customer:document.getElementById('bk-customer').value||'', phone:document.getElementById('bk-phone').value||'', note:document.getElementById('bk-note').value||'' };
+  var amount=Number(document.getElementById('bk-amount').value)||0;
+  var paidRaw=document.getElementById('bk-paid').value;
+  var paid=paidRaw===''?amount:Number(paidRaw)||0;
+  var item={ id:Date.now(), date:document.getElementById('bk-date').value, type:document.getElementById('bk-type').value, amount:amount, commission:Number(document.getElementById('bk-commission').value)||0, paid:paid, customer:document.getElementById('bk-customer').value||'', phone:document.getElementById('bk-phone').value||'', note:document.getElementById('bk-note').value||'' };
   window.D.bkash=window.D.bkash||[];
   window.D.bkash.push(item);
   saveToFirebase();
-  ['bk-amount','bk-commission','bk-customer','bk-phone','bk-note'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['bk-amount','bk-commission','bk-paid','bk-customer','bk-phone','bk-note'].forEach(function(id){ document.getElementById(id).value=''; });
   showToast('✅ লেনদেন সংরক্ষিত হয়েছে','green');
+  renderBkash(); updateAll();
+}
+function bkDue(i){ return Number(i.amount||0)-(i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0)); }
+function payBkashDue(id){
+  var item=(window.D.bkash||[]).find(function(i){ return i.id===id; });
+  if(!item) return;
+  var due=bkDue(item);
+  var amt=prompt('কত টাকা জমা দিলেন? (বাকি আছে '+tk(due)+')', due);
+  if(amt===null) return;
+  amt=Number(amt); if(!amt||amt<=0) return;
+  item.paid=(Number(item.paid)||0)+amt;
+  if(item.paid>item.amount) item.paid=item.amount;
+  saveToFirebase();
+  showToast('✅ জমা গ্রহণ করা হয়েছে','green');
   renderBkash(); updateAll();
 }
 function deleteBkash(id){
@@ -1390,14 +1420,26 @@ function renderBkash(){
   window.D.bkash=window.D.bkash||[];
   var q=(document.getElementById('bk-search')?document.getElementById('bk-search').value||'':'').toLowerCase();
   var tf=document.getElementById('bk-type-filter')?document.getElementById('bk-type-filter').value||'':'';
+  var df=document.getElementById('bk-due-filter')?document.getElementById('bk-due-filter').value||'':'';
   var list=window.D.bkash.filter(function(i){
     if(tf&&i.type!==tf) return false;
+    var due=bkDue(i);
+    if(df==='due'&&due<=0) return false;
+    if(df==='paid'&&due>0) return false;
     return !q||(i.customer||'').toLowerCase().includes(q)||(i.note||'').toLowerCase().includes(q);
   });
   var tb=document.getElementById('bk-body');
   if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){
-    return '<tr><td>'+i.date+'</td><td><span class="badge '+(BK_BADGE[i.type]||'badge-blue')+'">'+(BK_LABELS[i.type]||i.type)+'</span></td><td>'+tk(i.amount)+'</td><td style="color:var(--green);font-weight:600;">'+tk(i.commission)+'</td><td>'+(i.customer||'—')+'</td><td>'+(i.phone||'—')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell"><button class="btn btn-danger" onclick="deleteBkash('+i.id+')">🗑 ডিলিট</button></td></tr>';
-  }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো লেনদেন যোগ হয়নি</td></tr>';
+    var due=bkDue(i); var paid=i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0);
+    return '<tr><td>'+i.date+'</td><td><span class="badge '+(BK_BADGE[i.type]||'badge-blue')+'">'+(BK_LABELS[i.type]||i.type)+'</span></td><td>'+tk(i.amount)+'</td><td style="color:var(--green);font-weight:600;">'+tk(i.commission)+'</td><td>'+tk(paid)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td>'+(i.customer||'—')+'</td><td>'+(i.phone||'—')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="payBkashDue('+i.id+')">💳 জমা</button>':'')+'<button class="btn btn-danger" onclick="deleteBkash('+i.id+')">🗑 ডিলিট</button></td></tr>';
+  }).join(''):'<tr class="empty-row"><td colspan="10">এখনো কোনো লেনদেন যোগ হয়নি</td></tr>';
+
+  var dueList=window.D.bkash.filter(function(i){ return bkDue(i)>0; });
+  var db=document.getElementById('bk-due-body');
+  if(db) db.innerHTML=dueList.length?dueList.slice().reverse().map(function(i){
+    var due=bkDue(i); var paid=i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0);
+    return '<tr><td>'+i.date+'</td><td><span class="badge '+(BK_BADGE[i.type]||'badge-blue')+'">'+(BK_LABELS[i.type]||i.type)+'</span></td><td>'+(i.customer||'—')+'</td><td>'+(i.phone||'—')+'</td><td>'+tk(i.amount)+'</td><td>'+tk(paid)+'</td><td class="due-tag">'+tk(due)+'</td><td class="action-cell"><button class="btn btn-pay" onclick="payBkashDue('+i.id+')">💳 জমা নিন</button></td></tr>';
+  }).join(''):'<tr class="empty-row"><td colspan="8" style="color:var(--green)">✅ কোনো বাকি নেই!</td></tr>';
 
   var now2=new Date();
   var todayList=window.D.bkash.filter(function(i){ return new Date(i.date).toDateString()===now2.toDateString(); });
@@ -1414,6 +1456,8 @@ function renderBkash(){
   if(document.getElementById('bk-month-commission')) document.getElementById('bk-month-commission').textContent=tk(monthCommission);
   if(document.getElementById('bk-month-volume')) document.getElementById('bk-month-volume').textContent=tk(monthVolume);
   if(document.getElementById('bk-all-commission')) document.getElementById('bk-all-commission').textContent=tk(allCommission);
+  var totalBkDue=window.D.bkash.reduce(function(s,i){ return s+Math.max(bkDue(i),0); },0);
+  if(document.getElementById('bk-total-due')) document.getElementById('bk-total-due').textContent=tk(totalBkDue);
   if(document.getElementById('dash-bkash-commission')) document.getElementById('dash-bkash-commission').textContent=tk(monthCommission);
 
   var rangeList=window.D.bkash.filter(function(i){ return bkInSelectedRange(i.date); });
@@ -1954,8 +1998,8 @@ function exportCSV(type){
     rows=[['তারিখ','খাত','পরিমাণ','নোট']];
     (window.D.household||[]).forEach(function(i){ rows.push([i.date,i.category,i.amount,i.note||'']); }); filename='সংসারের_খরচ.csv';
   } else if(type==='bkash'){
-    rows=[['তারিখ','ধরন','লেনদেনের পরিমাণ','কমিশন','গ্রাহক','ফোন','নোট']];
-    (window.D.bkash||[]).forEach(function(i){ rows.push([i.date,BK_LABELS[i.type]||i.type,i.amount,i.commission,i.customer||'',i.phone||'',i.note||'']); }); filename='বিকাশ_ও_বিল_সার্ভিস.csv';
+    rows=[['তারিখ','ধরন','লেনদেনের পরিমাণ','কমিশন','জমা','বাকি','গ্রাহক','ফোন','নোট']];
+    (window.D.bkash||[]).forEach(function(i){ var paid=i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0); rows.push([i.date,BK_LABELS[i.type]||i.type,i.amount,i.commission,paid,bkDue(i),i.customer||'',i.phone||'',i.note||'']); }); filename='বিকাশ_ও_বিল_সার্ভিস.csv';
   } else if(type==='warranty'){
     rows=[['তারিখ','ধরন','পণ্য','পরিমাণ','মূল্য','অবস্থা','নোট']];
     (window.D.warranty||[]).forEach(function(i){ rows.push([i.date,i.type==='damage'?'ড্যামেজ':'ওয়ারেন্টি',i.productName,i.qty,i.value,i.status==='resolved'?'সমাধান হয়েছে':'প্রক্রিয়াধীন',i.note||'']); }); filename='ওয়ারেন্টি_ড্যামেজ.csv';
