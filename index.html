@@ -636,6 +636,8 @@ tbody tr:hover{background:var(--surface2);}
                 <option value="মোবাইল মেরামত">📱 মোবাইল মেরামত</option>
                 <option value="চার্জার মেরামত">🔌 চার্জার মেরামত</option>
                 <option value="পাওয়ার সাপ্লাই মেরামত">⚡ পাওয়ার সাপ্লাই মেরামত</option>
+                <option value="সাউন্ড সিস্টেম মেরামত">🔊 সাউন্ড সিস্টেম মেরামত</option>
+                <option value="সাউন্ড সিস্টেম তৈরি">🎚️ সাউন্ড সিস্টেম তৈরি</option>
                 <option value="অন্যান্য মেরামত">🛠️ অন্যান্য মেরামত</option>
               </select>
             </div>
@@ -671,6 +673,8 @@ tbody tr:hover{background:var(--surface2);}
             <option value="মোবাইল মেরামত">📱 মোবাইল</option>
             <option value="চার্জার মেরামত">🔌 চার্জার</option>
             <option value="পাওয়ার সাপ্লাই মেরামত">⚡ পাওয়ার সাপ্লাই</option>
+            <option value="সাউন্ড সিস্টেম মেরামত">🔊 সাউন্ড সিস্টেম মেরামত</option>
+            <option value="সাউন্ড সিস্টেম তৈরি">🎚️ সাউন্ড সিস্টেম তৈরি</option>
             <option value="অন্যান্য মেরামত">🛠️ অন্যান্য</option>
           </select>
           <select id="r-status-filter" onchange="renderRepair()" style="width:auto;">
@@ -1065,11 +1069,13 @@ function checkPurchaseProdId(){
     var existing=window.D.stock[idx];
     hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)';
     hint.style.color='var(--cyan)';
-    if(!nameInput.value) nameInput.value=existing.name;
+    nameInput.value=existing.name;
   } else {
     hint.innerHTML='🆕 এটি একটি নতুন পণ্য আইডি';
     hint.style.color='var(--green)';
+    if(window._lastMatchedPurchaseId && window._lastMatchedPurchaseId!==val) nameInput.value='';
   }
+  window._lastMatchedPurchaseId=(idx>=0?val:'');
 }
 function checkSaleProdId(){
   var idInput=document.getElementById('s-prod-id');
@@ -1169,7 +1175,7 @@ function renderPurchases(){
   var fd=document.getElementById('p-date-filter').value||'';
   var list=window.D.purchases.filter(function(i){ return (!q||i.name.toLowerCase().includes(q)||(i.supplier||'').toLowerCase().includes(q))&&(!fd||i.date===fd); });
   var tb=document.getElementById('p-body');
-  tb.innerHTML=list.length?list.map(function(i){ var tot=purTotal(i); var paid=purPaid(i); var due=purDue(i); return '<tr><td>'+i.date+'</td><td><span class="badge badge-blue">'+(i.prodId||'N/A')+'</span></td><td>'+i.name+'</td><td>'+Number(i.qty||1).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.cost)+'</td><td style="color:var(--green);font-weight:700;">'+tk(tot)+'</td><td>'+tk(paid)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td>'+(i.supplier||'N/A')+'</td><td class="action-cell"><button class="btn btn-danger" onclick="deletePurchase('+i.id+')">🗑 ডিলিট</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="10">কোনো ক্রয় এন্ট্রি নেই</td></tr>';
+  tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=purTotal(i); var paid=purPaid(i); var due=purDue(i); return '<tr><td>'+i.date+'</td><td><span class="badge badge-blue">'+(i.prodId||'N/A')+'</span></td><td>'+i.name+'</td><td>'+Number(i.qty||1).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.cost)+'</td><td style="color:var(--green);font-weight:700;">'+tk(tot)+'</td><td>'+tk(paid)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td>'+(i.supplier||'N/A')+'</td><td class="action-cell"><button class="btn btn-danger" onclick="deletePurchase('+i.id+')">🗑 ডিলিট</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="10">কোনো ক্রয় এন্ট্রি নেই</td></tr>';
 }
 function fillDateFilter(){
   var sel=document.getElementById('p-date-filter');
@@ -1235,7 +1241,9 @@ function checkStockProdId(){
   } else {
     hint.innerHTML='🆕 এটি একটি নতুন পণ্য আইডি';
     hint.style.color='var(--green)';
+    if(window._lastMatchedStockId && window._lastMatchedStockId!==val) nameInput.value='';
   }
+  window._lastMatchedStockId=(idx>=0?val:'');
 }
 function addStock(e){
   e.preventDefault();
@@ -1281,7 +1289,7 @@ function renderStock(){
     return idExact||nameMatch;
   });
   var tb=document.getElementById('st-body');
-  tb.innerHTML=list.length?list.map(function(i){
+  tb.innerHTML=list.length?list.slice().reverse().map(function(i){
     var low=isLowStock(i);
     return '<tr><td><span class="badge badge-blue">'+i.stId+'</span></td><td>'+i.name+'</td><td>'+Number(i.qty).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.value)+'</td><td>'+Number(i.reorderLevel||0).toLocaleString('bn-BD')+' টি</td><td class="'+(low?'low-stock-tag':'ok-stock-tag')+'">'+(low?'⚠️ রি-অর্ডার প্রয়োজন':'✓ পর্যাপ্ত')+'</td><td class="action-cell"><button class="btn btn-danger" onclick="deleteStock('+i.id+')">🗑 ডিলিট</button></td></tr>';
   }).join(''):'<tr class="empty-row"><td colspan="7">কোনো স্টক এন্ট্রি নেই</td></tr>';
