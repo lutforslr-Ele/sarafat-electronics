@@ -975,12 +975,26 @@ function updateDash(){
   var repIncome=((D&&D.repairs)||[]).reduce(function(s,i){ return s+Number(i.rate||0); },0);
   var repCash=((D&&D.repairs)||[]).reduce(function(s,i){ return s+Number(i.paid||0); },0);
   tr+=repIncome; tc+=repCash;
-  var grossProfit=tr-tp;
+  // সঠিক COGS: শুধু বিক্রিত পণ্যের ক্রয়মূল্য (স্টকে থাকা অবিক্রিত মালামাল বাদ)
+  var cogsAll=0;
+  D.sales.forEach(function(s){
+    var purchasesForProd=(D.purchases||[]).filter(function(p){ return p.prodId===s.prodId; });
+    var unitCost=0;
+    if(purchasesForProd.length){
+      var totQty=purchasesForProd.reduce(function(a,p){ return a+Number(p.qty||1); },0);
+      var totCost=purchasesForProd.reduce(function(a,p){ return a+purTotal(p); },0);
+      unitCost=totQty?totCost/totQty:0;
+    }
+    cogsAll += unitCost*Number(s.qty||1);
+  });
+  var grossProfit=tr-cogsAll;
   var now2=new Date();
   var monthExpenses=(D.expenses||[]).filter(function(i){ var d=new Date(i.date); return d.getFullYear()===now2.getFullYear()&&d.getMonth()===now2.getMonth(); }).reduce(function(s,i){ return s+Number(i.amount||0); },0);
+  var totalExpensesAll=(D.expenses||[]).reduce(function(s,i){ return s+Number(i.amount||0); },0);
   var pendingDamage=(D.warranty||[]).filter(function(i){ return i.type==='damage'; }).reduce(function(s,i){ return s+Number(i.value||0); },0);
   var bkashCommission=bkashMonthCommission();
-  var np=grossProfit-monthExpenses-pendingDamage+bkashCommission;
+  var bkashCommissionAll=(D.bkash||[]).reduce(function(s,i){ return s+Number(i.commission||0); },0);
+  var np=grossProfit-totalExpensesAll-pendingDamage+bkashCommissionAll;
   var ts=D.stock.reduce(function(s,i){ return s+Number(i.value); },0);
   var lowStockCount=D.stock.filter(function(i){ return isLowStock(i); }).length;
   document.getElementById('dash-purchase').textContent=tk(tp);
