@@ -1706,26 +1706,26 @@ function printInvoice(id){
     seInvoiceCustomer(sale.customer,sale.phone,sale.date)+
     '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
     '<thead><tr style="background:#f3f4f6;">'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:34px;text-align:center;">ক্রম</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;text-align:center;">বিবরণ</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:60px;text-align:center;">পরিমান</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">দর</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">টাকা</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
     '</tr></thead><tbody>'+
-    '<tr><td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">১</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+prodName+(sale.prodId?' <span style="color:#888;font-size:.78rem;">('+sale.prodId+')</span>':'')+'</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+qty.toLocaleString('bn-BD')+'</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+unitPrice.toLocaleString(undefined,{maximumFractionDigits:2})+'</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+Number(sale.amount).toLocaleString()+'</td></tr>'+
+    '<tr><td style="padding:5px 6px;border:1px solid #555;text-align:center;">১</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+prodName+(sale.prodId?' <span style="color:#888;font-size:.78rem;">('+sale.prodId+')</span>':'')+'</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+qty.toLocaleString('bn-BD')+'</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+unitPrice.toLocaleString(undefined,{maximumFractionDigits:2})+'</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+Number(sale.amount).toLocaleString()+'</td></tr>'+
     '</tbody>'+
     '<tfoot>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">মোট টাকা</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">৳ '+Number(sale.amount).toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+Number(sale.amount).toLocaleString()+'</td></tr>'+
     invoiceWordsRow(Number(sale.amount))+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;">নগদ পরিশোধ</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;color:green;">৳ '+Number(sale.paid).toLocaleString()+'</td></tr>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">বাকি</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;color:'+(due>0?'red':'green')+';">'+(due>0?'৳ '+due.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+Number(sale.paid).toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">বাকি</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(due>0?'red':'green')+';">'+(due>0?'৳ '+due.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
     '</tfoot>'+
     '</table>'+
     seInvoiceFooter('পেমেন্ট: '+(sale.payMethod==='digital'?'📱 ডিজিটাল':'💵 নগদ'))+
@@ -1945,11 +1945,11 @@ function printSelectedSales(){
     var stockItem=(window.D.stock||[]).find(function(s){ return s.stId===i.prodId; });
     var name=stockItem?stockItem.name:(i.prodId||'পণ্য');
     return '<tr style="border-bottom:1px solid #e2e2e2;">'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+(idx+1)+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+name+(i.prodId?' <span style="color:#888;font-size:.78rem;">('+i.prodId+')</span>':'')+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+qty.toLocaleString('bn-BD')+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+unit.toLocaleString(undefined,{maximumFractionDigits:2})+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+Number(i.amount||0).toLocaleString()+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+name+(i.prodId?' <span style="color:#888;font-size:.78rem;">('+i.prodId+')</span>':'')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+qty.toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+unit.toLocaleString(undefined,{maximumFractionDigits:2})+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+Number(i.amount||0).toLocaleString()+'</td>'+
     '</tr>';
   }).join('');
 
@@ -1959,20 +1959,20 @@ function printSelectedSales(){
     seInvoiceCustomer(custName,custPhone,new Date().toLocaleDateString('bn-BD'))+
     '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
     '<thead><tr style="background:#f3f4f6;">'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:34px;text-align:center;">ক্রম</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;text-align:center;">বিবরণ</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:60px;text-align:center;">পরিমান</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">দর</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">টাকা</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
     '</tr></thead><tbody>'+rows+'</tbody>'+
     '<tfoot>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">মোট টাকা</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">৳ '+totalAmt.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+totalAmt.toLocaleString()+'</td></tr>'+
     invoiceWordsRow(totalAmt)+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;">নগদ পরিশোধ</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">বাকি</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">বাকি</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
     '</tfoot>'+
     '</table>'+
     seInvoiceFooter('একাধিক পণ্য একসাথে বিক্রয়')+
@@ -2063,11 +2063,11 @@ function printSelectedRepairs(){
     var t=repTotal(i);
     var partsNote=(i.parts&&i.parts.length)?' <span style="color:#666;font-size:.78rem;">(+'+i.parts.length+'টি পার্স)</span>':'';
     return '<tr style="border-bottom:1px solid #e2e2e2;">'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+(idx+1)+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+i.type+(i.problem?' — <span style="color:#666;font-size:.82rem;">'+i.problem+'</span>':'')+partsNote+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">১</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+t.toLocaleString()+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+t.toLocaleString()+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+i.type+(i.problem?' — <span style="color:#666;font-size:.82rem;">'+i.problem+'</span>':'')+partsNote+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">১</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+t.toLocaleString()+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+t.toLocaleString()+'</td>'+
     '</tr>';
   }).join('');
 
@@ -2077,20 +2077,20 @@ function printSelectedRepairs(){
     seInvoiceCustomer(custName,custPhone,new Date().toLocaleDateString('bn-BD'))+
     '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
     '<thead><tr style="background:#f3f4f6;">'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:34px;text-align:center;">ক্রম</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;text-align:center;">বিবরণ</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:60px;text-align:center;">পরিমান</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">দর</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">টাকা</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
     '</tr></thead><tbody>'+rows+'</tbody>'+
     '<tfoot>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">মোট টাকা</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">৳ '+totalRate.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+totalRate.toLocaleString()+'</td></tr>'+
     invoiceWordsRow(totalRate)+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;">নগদ পরিশোধ</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">বাকি</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">বাকি</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
     '</tfoot>'+
     '</table>'+
     seInvoiceFooter()+
@@ -2109,17 +2109,17 @@ function printRepairInvoice(id){
   var due=Math.max(total-Number(rep.paid||0),0);
   var parts=rep.parts||[];
   var rowNum=0;
-  var laborRow='<tr><td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+(++rowNum).toLocaleString('bn-BD')+'</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+rep.type+(rep.problem?' — <span style="color:#666;font-size:.82rem;">'+rep.problem+'</span>':'')+' (সার্ভিস চার্জ)</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">১</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+Number(rep.rate||0).toLocaleString()+'</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+Number(rep.rate||0).toLocaleString()+'</td></tr>';
+  var laborRow='<tr><td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(++rowNum).toLocaleString('bn-BD')+'</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+rep.type+(rep.problem?' — <span style="color:#666;font-size:.82rem;">'+rep.problem+'</span>':'')+' (সার্ভিস চার্জ)</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">১</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+Number(rep.rate||0).toLocaleString()+'</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+Number(rep.rate||0).toLocaleString()+'</td></tr>';
   var partsRows=parts.map(function(p){
-    return '<tr><td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+(++rowNum).toLocaleString('bn-BD')+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+p.name+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">'+Number(p.qty||1).toLocaleString('bn-BD')+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+Number(p.price||0).toLocaleString()+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #ddd;text-align:center;">৳ '+(Number(p.price||0)*Number(p.qty||1)).toLocaleString()+'</td></tr>';
+    return '<tr><td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(++rowNum).toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+p.name+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+Number(p.qty||1).toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+Number(p.price||0).toLocaleString()+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+(Number(p.price||0)*Number(p.qty||1)).toLocaleString()+'</td></tr>';
   }).join('');
   var inv=document.getElementById('invoice-area');
   var receiptHtml='<div style="max-width:680px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:12px;border:1px solid #ccc;">'+
@@ -2127,22 +2127,22 @@ function printRepairInvoice(id){
     seInvoiceCustomer(rep.customer,rep.phone,rep.date)+
     '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
     '<thead><tr style="background:#f3f4f6;">'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:34px;text-align:center;">ক্রম</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;text-align:center;">বিবরণ</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:60px;text-align:center;">পরিমান</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">দর</th>'+
-    '<th style="padding:5px 6px;border:1px solid #ddd;width:90px;text-align:center;">টাকা</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
     '</tr></thead><tbody>'+
     laborRow+partsRows+
     '</tbody>'+
     '<tfoot>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">মোট টাকা</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">৳ '+total.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+total.toLocaleString()+'</td></tr>'+
     invoiceWordsRow(total)+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;">নগদ পরিশোধ</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;color:green;">৳ '+Number(rep.paid||0).toLocaleString()+'</td></tr>'+
-    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">বাকি</td>'+
-    '<td style="padding:5px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;color:'+(due>0?'red':'green')+';">'+(due>0?'৳ '+due.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+Number(rep.paid||0).toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">বাকি</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(due>0?'red':'green')+';">'+(due>0?'৳ '+due.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
     '</tfoot>'+
     '</table>'+
     seInvoiceFooter('স্ট্যাটাস: '+rep.status)+
