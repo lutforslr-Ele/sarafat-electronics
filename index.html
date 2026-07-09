@@ -301,7 +301,17 @@ tbody tr:hover{background:var(--surface2);}
           <div class="search-box"><input type="text" id="s-search" placeholder="গ্রাহক বা পণ্য খুঁজুন..." oninput="renderSales()"></div>
           <select id="s-filter" onchange="renderSales()" style="width:auto;"><option value="">সব এন্ট্রি</option><option value="due">শুধু বাকি</option><option value="paid">শুধু পরিশোধিত</option></select>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>পণ্য আইডি</th><th>গ্রাহক</th><th>ফোন</th><th>পরিমাণ</th><th>মোট</th><th>গ্রহণ</th><th>মাধ্যম</th><th>বাকি</th><th>অ্যাকশন</th></tr></thead><tbody id="s-body"></tbody></table></div>
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);font-size:.85rem;">
+            <input type="checkbox" id="s-select-all" onchange="toggleSelectAllSales(this)"> সব সিলেক্ট করুন
+          </label>
+          <button class="btn btn-print" onclick="printSelectedSales()" style="padding:7px 14px;">🖨️ সিলেক্ট করা একই রশিদে প্রিন্ট</button>
+          <span id="s-selected-count" style="color:var(--muted);font-size:.82rem;"></span>
+        </div>
+        <div class="table-wrap"><table><thead><tr>
+          <th style="width:36px;"><input type="checkbox" id="s-head-check" onchange="toggleSelectAllSales(this)"></th>
+          <th>তারিখ</th><th>পণ্য আইডি</th><th>গ্রাহক</th><th>ফোন</th><th>পরিমাণ</th><th>মোট</th><th>গ্রহণ</th><th>মাধ্যম</th><th>বাকি</th><th>অ্যাকশন</th>
+        </tr></thead><tbody id="s-body"></tbody></table></div>
       </div>
     </div>
 
@@ -1232,7 +1242,7 @@ function renderSales(){
   var f=document.getElementById('s-filter').value||'';
   var list=window.D.sales.filter(function(i){ var due=Number(i.amount)-Number(i.paid); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.customer.toLowerCase().includes(q)||(i.prodId||'').toLowerCase().includes(q); });
   var tb=document.getElementById('s-body');
-  tb.innerHTML=list.length?list.map(function(i){ var due=Number(i.amount)-Number(i.paid); var pm=i.payMethod==='digital'?'📱 ডিজিটাল':'💵 নগদ'; return '<tr><td>'+i.date+'</td><td><span class="badge badge-green">'+(i.prodId||'N/A')+'</span></td><td>'+i.customer+'</td><td>'+(i.phone||'N/A')+'</td><td>'+Number(i.qty||1).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.amount)+'</td><td>'+tk(i.paid)+'</td><td>'+pm+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td class="action-cell"><button class="btn btn-print" onclick="printInvoice('+i.id+')">🖨️ রসিদ</button><button class="btn btn-danger" onclick="deleteSale('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="10">কোনো বিক্রয় নেই</td></tr>';
+  tb.innerHTML=list.length?list.map(function(i){ var due=Number(i.amount)-Number(i.paid); var pm=i.payMethod==='digital'?'📱 ডিজিটাল':'💵 নগদ'; return '<tr><td><input type="checkbox" class="s-row-check" value="'+i.id+'" onchange="updateSelectedCountSales()"></td><td>'+i.date+'</td><td><span class="badge badge-green">'+(i.prodId||'N/A')+'</span></td><td>'+i.customer+'</td><td>'+(i.phone||'N/A')+'</td><td>'+Number(i.qty||1).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.amount)+'</td><td>'+tk(i.paid)+'</td><td>'+pm+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td class="action-cell"><button class="btn btn-print" onclick="printInvoice('+i.id+')">🖨️ রসিদ</button><button class="btn btn-danger" onclick="deleteSale('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="11">কোনো বিক্রয় নেই</td></tr>';
 
   var todayStr=new Date().toISOString().slice(0,10);
   var todaySales=window.D.sales.filter(function(i){ return i.date===todayStr; });
@@ -1901,6 +1911,73 @@ function updateSelectedCount(){
   var checks=document.querySelectorAll('.r-row-check:checked');
   var el=document.getElementById('r-selected-count');
   if(el) el.textContent=checks.length>0?checks.length+' টি সিলেক্ট হয়েছে':'';
+}
+function toggleSelectAllSales(cb){
+  var checks=document.querySelectorAll('.s-row-check');
+  checks.forEach(function(c){ c.checked=cb.checked; });
+  var h=document.getElementById('s-head-check');
+  var t=document.getElementById('s-select-all');
+  if(h) h.checked=cb.checked;
+  if(t) t.checked=cb.checked;
+  updateSelectedCountSales();
+}
+function updateSelectedCountSales(){
+  var checks=document.querySelectorAll('.s-row-check:checked');
+  var el=document.getElementById('s-selected-count');
+  if(el) el.textContent=checks.length>0?checks.length+' টি সিলেক্ট হয়েছে':'';
+}
+function printSelectedSales(){
+  var checks=document.querySelectorAll('.s-row-check:checked');
+  if(checks.length===0){ alert('কমপক্ষে একটি এন্ট্রি সিলেক্ট করুন!'); return; }
+  var ids=Array.from(checks).map(function(c){ return Number(c.value); });
+  var selected=(window.D.sales||[]).filter(function(i){ return ids.includes(i.id); });
+  if(!selected.length) return;
+
+  var totalAmt=selected.reduce(function(s,i){ return s+Number(i.amount||0); },0);
+  var totalPaid=selected.reduce(function(s,i){ return s+Number(i.paid||0); },0);
+  var totalDue=Math.max(totalAmt-totalPaid,0);
+  var custName=selected[0].customer, custPhone=selected[0].phone;
+
+  var rows=selected.map(function(i,idx){
+    var qty=Number(i.qty||1);
+    var unit=qty?Number(i.amount||0)/qty:Number(i.amount||0);
+    var stockItem=(window.D.stock||[]).find(function(s){ return s.stId===i.prodId; });
+    var name=stockItem?stockItem.name:(i.prodId||'পণ্য');
+    return '<tr style="border-bottom:1px solid #e2e2e2;">'+
+      '<td style="padding:8px 6px;border:1px solid #ddd;text-align:center;">'+(idx+1)+'</td>'+
+      '<td style="padding:8px 6px;border:1px solid #ddd;text-align:center;">'+name+(i.prodId?' <span style="color:#888;font-size:.78rem;">('+i.prodId+')</span>':'')+'</td>'+
+      '<td style="padding:8px 6px;border:1px solid #ddd;text-align:center;">'+qty.toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:8px 6px;border:1px solid #ddd;text-align:center;">৳ '+unit.toLocaleString(undefined,{maximumFractionDigits:2})+'</td>'+
+      '<td style="padding:8px 6px;border:1px solid #ddd;text-align:center;">৳ '+Number(i.amount||0).toLocaleString()+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var inv=document.getElementById('invoice-area');
+  var receiptHtml='<div style="max-width:680px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:20px;border:1px solid #ccc;">'+
+    seInvoiceHeader('INV-'+Date.now().toString().slice(-6))+
+    seInvoiceCustomer(custName,custPhone,new Date().toLocaleDateString('bn-BD'))+
+    '<table style="width:100%;border-collapse:collapse;font-size:.85rem;">'+
+    '<thead><tr style="background:#f3f4f6;">'+
+    '<th style="padding:9px 6px;border:1px solid #ddd;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:9px 6px;border:1px solid #ddd;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:9px 6px;border:1px solid #ddd;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:9px 6px;border:1px solid #ddd;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:9px 6px;border:1px solid #ddd;width:90px;text-align:center;">টাকা</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot>'+
+    '<tr><td colspan="4" style="padding:8px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:8px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">৳ '+totalAmt.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:8px 6px;border:1px solid #ddd;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:8px 6px;border:1px solid #ddd;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:8px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;">বাকি</td>'+
+    '<td style="padding:8px 6px;border:1px solid #ddd;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '</tfoot>'+
+    '</table>'+
+    seInvoiceFooter('একাধিক পণ্য একসাথে বিক্রয়')+
+    '</div>';
+  inv.innerHTML='<div class="print-page"><div class="receipt-col">'+receiptHtml+'</div><div class="cut-divider"></div><div class="receipt-col">'+receiptHtml+'</div></div>';
+  window.print();
+  setTimeout(function(){ inv.innerHTML=''; },1500);
 }
 // Classic shop-invoice header/footer (matches the printed paper invoice book design)
 function seInvoiceHeader(invNo){
