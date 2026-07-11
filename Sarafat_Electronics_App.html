@@ -241,7 +241,19 @@ tbody tr:hover{background:var(--surface2);}
             <div class="form-group"><label>প্রতি পিস ক্রয় মূল্য (৳)</label><input type="number" id="p-cost" min="0" placeholder="প্রতি পিসের দাম" oninput="calcPurchaseTotal()" required></div>
             <div class="form-group"><label>মোট ক্রয় মূল্য (৳)</label><input type="number" id="p-total" readonly style="background:var(--surface2);color:var(--green);font-weight:700;"></div>
             <div class="form-group"><label>সরবরাহকারীকে নগদ পরিশোধ (৳)</label><input type="number" id="p-paid" min="0" placeholder="যত টাকা দিয়েছেন"></div>
-            <div class="form-group full"><label>সরবরাহকারী</label><input type="text" id="p-supplier" placeholder="যেমন: ABC Electronics"></div>
+            <div class="form-group full"><label>সরবরাহকারী</label><input type="text" id="p-supplier" list="supplier-list" placeholder="তালিকা থেকে বেছে নিন অথবা নতুন নাম লিখুন">
+              <datalist id="supplier-list">
+                <option value="আলিফ ইলেকট্রনিক্স">
+                <option value="সাথি ইলেকট্রনিক্স">
+                <option value="সামিম ইলেকট্রনিক্স">
+                <option value="ইকবাল ইলেকট্রনিক্স">
+                <option value="সোহেল ইলেকট্রনিক্স">
+                <option value="জনি ইলেকট্রনিক্স">
+                <option value="মস্তোফা ইলেকট্রনিক্স">
+                <option value="ফরিদপুর পার্টস হাউস">
+                <option value="ফারুক ইলেকট্রনিক্স">
+              </datalist>
+            </div>
           </div>
           <div class="btn-row">
             <button type="submit" class="btn btn-primary">✅ সংরক্ষণ করুন</button>
