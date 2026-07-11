@@ -1094,17 +1094,24 @@ function checkPurchaseProdId(){
     hint.innerHTML=(last?'সর্বশেষ ব্যবহৃত আইডি: <b>'+last+'</b>':'')+(suggestion?' • পরবর্তী আইডি সাজেশন: <b>'+suggestion+'</b>':'');
     hint.style.color='var(--muted)';
     nameInput.value='';
+    nameInput.readOnly=false;
+    nameInput.style.background='';
+    nameInput.placeholder='যেমন: 2SC5200 Transistor';
     return;
   }
   var idx=findStockIdx(val);
   if(idx>=0){
     var existing=window.D.stock[idx];
-    hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)';
+    hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)। নামের ঘরটি লক করা আছে যাতে এই আইডিতে ভুল নাম সেভ না হয়।';
     hint.style.color='var(--cyan)';
     nameInput.value=existing.name;
+    nameInput.readOnly=true;
+    nameInput.style.background='var(--surface2)';
   } else {
     hint.innerHTML='🆕 এটি একটি নতুন পণ্য আইডি';
     hint.style.color='var(--green)';
+    nameInput.readOnly=false;
+    nameInput.style.background='';
     if(window._lastMatchedPurchaseId && window._lastMatchedPurchaseId!==val) nameInput.value='';
   }
   window._lastMatchedPurchaseId=(idx>=0?val:'');
@@ -1263,16 +1270,20 @@ function checkStockProdId(){
   var hint=document.getElementById('st-id-hint');
   var val=(idInput.value||'').trim();
   if(!hint) return;
-  if(!val){ hint.innerHTML=''; nameInput.value=''; return; }
+  if(!val){ hint.innerHTML=''; nameInput.value=''; nameInput.readOnly=false; nameInput.style.background=''; return; }
   var idx=findStockIdx(val);
   if(idx>=0){
     var existing=window.D.stock[idx];
     nameInput.value=existing.name;
-    hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)। এখানে যে পরিমাণ ও মূল্য দেবেন তা বর্তমান স্টকের সাথে যোগ হয়ে যাবে।';
+    nameInput.readOnly=true;
+    nameInput.style.background='var(--surface2)';
+    hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)। নামের ঘরটি লক করা আছে যাতে এই আইডিতে ভুল নাম সেভ না হয়। এখানে যে পরিমাণ ও মূল্য দেবেন তা বর্তমান স্টকের সাথে যোগ হয়ে যাবে।';
     hint.style.color='var(--cyan)';
   } else {
     hint.innerHTML='🆕 এটি একটি নতুন পণ্য আইডি';
     hint.style.color='var(--green)';
+    nameInput.readOnly=false;
+    nameInput.style.background='';
     if(window._lastMatchedStockId && window._lastMatchedStockId!==val) nameInput.value='';
   }
   window._lastMatchedStockId=(idx>=0?val:'');
@@ -1300,6 +1311,8 @@ function addStock(e){
   }
   ['st-id','st-name','st-qty','st-value'].forEach(function(id){ document.getElementById(id).value=''; });
   document.getElementById('st-reorder').value=5;
+  document.getElementById('st-name').readOnly=false;
+  document.getElementById('st-name').style.background='';
   if(document.getElementById('st-id-hint')) document.getElementById('st-id-hint').innerHTML='';
   refreshProdIdDatalist();
 }
