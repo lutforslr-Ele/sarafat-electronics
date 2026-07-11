@@ -1096,19 +1096,18 @@ function checkPurchaseProdId(){
     nameInput.value='';
     nameInput.readOnly=false;
     nameInput.style.background='';
-    nameInput.placeholder='যেমন: 2SC5200 Transistor';
     return;
   }
   var idx=findStockIdx(val);
   if(idx>=0){
     var existing=window.D.stock[idx];
-    hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)। নামের ঘরটি লক করা আছে যাতে এই আইডিতে ভুল নাম সেভ না হয়।';
+    hint.innerHTML='✅ বিদ্যমান পণ্য: <b>'+existing.name+'</b> (বর্তমান স্টক: '+Number(existing.qty).toLocaleString('bn-BD')+' টি)। এই আইডি শুধু এই পণ্যের জন্য বাঁধা, তাই নামের ঘর লক করা আছে — একই পণ্য যত খুশি কিনতে পারবেন, শুধু অন্য পণ্য এই আইডিতে যোগ করা যাবে না।';
     hint.style.color='var(--cyan)';
     nameInput.value=existing.name;
     nameInput.readOnly=true;
     nameInput.style.background='var(--surface2)';
   } else {
-    hint.innerHTML='🆕 এটি একটি নতুন পণ্য আইডি';
+    hint.innerHTML='🆕 এটি একটি নতুন পণ্য আইডি — এখন যে নাম দেবেন, ভবিষ্যতে এই আইডি দিয়ে শুধু এই পণ্যই কেনা যাবে।';
     hint.style.color='var(--green)';
     nameInput.readOnly=false;
     nameInput.style.background='';
