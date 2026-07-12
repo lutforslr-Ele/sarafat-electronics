@@ -551,6 +551,14 @@ tbody tr:hover{background:var(--surface2);}
         <div class="table-wrap"><table><thead><tr><th>খাত</th><th>মোট (৳)</th></tr></thead><tbody id="hh-summary-body"></tbody></table></div>
       </div>
       <div class="panel">
+        <div class="panel-title">📄 মাসিক সংসার খরচ সামারি (PDF)</div>
+        <div class="toolbar">
+          <div class="form-group" style="margin:0;"><label>মাস বেছে নিন</label><input type="month" id="hh-summary-month"></div>
+          <button class="btn btn-print" onclick="printHouseholdSummary()" style="align-self:flex-end;">📄 সংসার খরচ সামারি PDF তৈরি করুন</button>
+        </div>
+        <p style="color:var(--muted);font-size:.82rem;margin-top:6px;">এটা ব্যবসার হিসাব থেকে সম্পূর্ণ আলাদা — শুধু ব্যক্তিগত/সংসারের খরচের সামারি।</p>
+      </div>
+      <div class="panel">
         <div class="panel-title">📋 সব সংসার খরচের তালিকা</div>
         <div class="toolbar">
           <div class="search-box"><input type="text" id="hh-search" placeholder="খাত বা নোট খুঁজুন..." oninput="renderHousehold()"></div>
@@ -630,6 +638,14 @@ tbody tr:hover{background:var(--surface2);}
       <div class="panel">
         <div class="panel-title">📈 লাভ-ক্ষতির বিস্তারিত হিসাব</div>
         <div class="table-wrap"><table class="pnl-table"><tbody id="pnl-breakdown"></tbody></table></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📄 মাসিক আয়-ব্যয় সামারি (PDF)</div>
+        <div class="toolbar">
+          <div class="form-group" style="margin:0;"><label>মাস বেছে নিন</label><input type="month" id="summary-month"></div>
+          <button class="btn btn-print" onclick="printMonthlySummary()" style="align-self:flex-end;">📄 মাসিক সামারি PDF তৈরি করুন</button>
+        </div>
+        <p style="color:var(--muted);font-size:.82rem;margin-top:6px;">তৈরি হলে প্রিন্ট ডায়ালগ থেকে "Save as PDF" বেছে নিয়ে ফোনে/কম্পিউটারে সেভ করতে পারবেন।</p>
       </div>
     </div>
 
@@ -886,6 +902,8 @@ var exDateEl=document.getElementById('ex-date'); if(exDateEl) exDateEl.valueAsDa
 var hhDateEl=document.getElementById('hh-date'); if(hhDateEl) hhDateEl.valueAsDate = now;
 var waDateEl=document.getElementById('wa-date'); if(waDateEl) waDateEl.valueAsDate = now;
 var bkDateEl=document.getElementById('bk-date'); if(bkDateEl) bkDateEl.valueAsDate = now;
+var summaryMonthEl=document.getElementById('summary-month'); if(summaryMonthEl) summaryMonthEl.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+var hhSummaryMonthEl=document.getElementById('hh-summary-month'); if(hhSummaryMonthEl) hhSummaryMonthEl.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 var days=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
 var months=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
 document.getElementById('today-date').textContent = days[now.getDay()]+', '+now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear();
@@ -1642,6 +1660,154 @@ function renderPnl(){
     '<tr><td>(-) ড্যামেজ/নষ্ট মালের ক্ষতি</td><td style="text-align:right;">'+tk(totalDamage)+'</td></tr>'+
     '<tr><td>(+) বিকাশ/বিল সার্ভিস কমিশন</td><td style="text-align:right;color:var(--green);">'+tk(bkashCommissionRange)+'</td></tr>'+
     '<tr class="total-row"><td>= নিট প্রফিট</td><td style="text-align:right;color:'+(netProfit<0?'var(--red)':'var(--green)')+';">'+tk(netProfit)+'</td></tr>';
+}
+
+var BN_MONTHS=['জানুয়ারি','ফেব্রুয়ারি','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টেম্বর','অক্টোবর','নভেম্বর','ডিসেম্বর'];
+function printMonthlySummary(){
+  var D=window.D;
+  var monthVal=document.getElementById('summary-month').value;
+  if(!monthVal){ alert('দয়া করে একটা মাস বেছে নিন!'); return; }
+  var parts=monthVal.split('-'); var yr=Number(parts[0]), mo=Number(parts[1])-1;
+  function inMonth(dateStr){ if(!dateStr) return false; var d=new Date(dateStr); return d.getFullYear()===yr&&d.getMonth()===mo; }
+
+  var salesM=(D.sales||[]).filter(function(i){ return inMonth(i.date); });
+  var repairsM=(D.repairs||[]).filter(function(i){ return inMonth(i.date); });
+  var expM=(D.expenses||[]).filter(function(i){ return inMonth(i.date); });
+  var damageM=(D.warranty||[]).filter(function(i){ return i.type==='damage'&&inMonth(i.date); });
+  var bkashM=(D.bkash||[]).filter(function(i){ return inMonth(i.date); });
+  var purchM=(D.purchases||[]).filter(function(i){ return inMonth(i.date); });
+
+  var revenue=salesM.reduce(function(s,i){ return s+Number(i.amount||0); },0)+repairsM.reduce(function(s,i){ return s+repTotal(i); },0);
+  var cogs=0;
+  salesM.forEach(function(s){
+    var purchasesForProd=(D.purchases||[]).filter(function(p){ return p.prodId===s.prodId; });
+    var unitCost=0;
+    if(purchasesForProd.length){
+      var totQty=purchasesForProd.reduce(function(a,p){ return a+Number(p.qty||1); },0);
+      var totCost=purchasesForProd.reduce(function(a,p){ return a+purTotal(p); },0);
+      unitCost=totQty?totCost/totQty:0;
+    }
+    cogs += unitCost*Number(s.qty||1);
+  });
+  cogs += repairsM.reduce(function(s,i){ return s+repPartsCost(i); },0);
+  var grossProfit=revenue-cogs;
+  var totalExpenses=expM.reduce(function(s,i){ return s+Number(i.amount||0); },0);
+  var totalDamage=damageM.reduce(function(s,i){ return s+Number(i.value||0); },0);
+  var bkashCommission=bkashM.reduce(function(s,i){ return s+Number(i.commission||0); },0);
+  var netProfit=grossProfit-totalExpenses-totalDamage+bkashCommission;
+
+  var totalPurchases=purchM.reduce(function(s,i){ return s+purTotal(i); },0);
+  var cashCollected=salesM.reduce(function(s,i){ return s+Number(i.paid||0); },0)+repairsM.reduce(function(s,i){ return s+Number(i.paid||0); },0);
+
+  var totalCustomerDue=(D.sales||[]).reduce(function(s,i){ return s+Math.max(Number(i.amount||0)-Number(i.paid||0),0); },0)
+    +(D.repairs||[]).reduce(function(s,i){ return s+Math.max(repTotal(i)-Number(i.paid||0),0); },0)
+    +(D.bkash||[]).reduce(function(s,i){ return s+Math.max(bkDue(i),0); },0);
+  var totalSupplierDue=(D.purchases||[]).reduce(function(s,i){ return s+purDue(i); },0);
+
+  var monthLabel=BN_MONTHS[mo]+' '+yr.toLocaleString('bn-BD',{useGrouping:false});
+  var genDate=new Date().toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'});
+
+  function row(label,val,opts){
+    opts=opts||{};
+    var cls=opts.total?'total-row':'';
+    var color=opts.color||'#111';
+    var sign=opts.sign||'';
+    return '<tr'+(opts.total?' style="font-weight:bold;background:#f6f6f6;"':'')+'>'+
+      '<td style="padding:6px 8px;border:1px solid #555;">'+label+'</td>'+
+      '<td style="padding:6px 8px;border:1px solid #555;text-align:right;color:'+color+';">'+sign+tk(val)+'</td></tr>';
+  }
+
+  var inv=document.getElementById('invoice-area');
+  var html='<div style="max-width:720px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:16px;border:1px solid #ccc;">'+
+    seInvoiceHeader('মাসিক সামারি')+
+    '<div style="text-align:center;margin:4px 0 14px;">'+
+      '<h2 style="margin:0;font-size:1.15rem;">মাসিক আয়-ব্যয় সামারি — '+monthLabel+'</h2>'+
+      '<p style="margin:2px 0 0;color:#666;font-size:.76rem;">তৈরির তারিখ: '+genDate+'</p>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:14px;">'+
+      '<thead><tr style="background:#f3f4f6;"><th colspan="2" style="padding:6px 8px;border:1px solid #555;text-align:left;">আয়-ব্যয়ের হিসাব</th></tr></thead>'+
+      '<tbody>'+
+        row('মোট বিক্রয় ও মেরামত আয় (রেভিনিউ)',revenue)+
+        row('(-) বিক্রিত পণ্য ও মেরামত পার্সের আনুমানিক ক্রয়মূল্য',cogs,{color:'#c00',sign:'-'})+
+        row('= গ্রস প্রফিট',grossProfit,{total:true})+
+        row('(-) দোকান খরচ (ভাড়া, বিল, বেতন ইত্যাদি)',totalExpenses,{color:'#c00',sign:'-'})+
+        row('(-) ড্যামেজ/নষ্ট মালের ক্ষতি',totalDamage,{color:'#c00',sign:'-'})+
+        row('(+) বিকাশ/বিল সার্ভিস কমিশন',bkashCommission,{color:'#080'})+
+        row('= নিট প্রফিট (এই মাসের প্রকৃত লাভ)',netProfit,{total:true,color:netProfit<0?'#c00':'#080'})+
+      '</tbody>'+
+    '</table>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:14px;">'+
+      '<thead><tr style="background:#f3f4f6;"><th colspan="2" style="padding:6px 8px;border:1px solid #555;text-align:left;">অতিরিক্ত তথ্য</th></tr></thead>'+
+      '<tbody>'+
+        row('এই মাসে মোট নতুন ক্রয় (স্টক)',totalPurchases)+
+        row('এই মাসে মোট নগদ আদায়/সংগ্রহ',cashCollected)+
+        row('বর্তমানে সর্বমোট বাকি পাওনা (কাস্টমার)',totalCustomerDue,{color:'#c00'})+
+        row('বর্তমানে সরবরাহকারীর কাছে মোট বাকি',totalSupplierDue,{color:'#c00'})+
+      '</tbody>'+
+    '</table>'+
+    seInvoiceFooter('')+
+  '</div>';
+  inv.innerHTML=html;
+  window.print();
+  setTimeout(function(){ inv.innerHTML=''; },1500);
+}
+function printHouseholdSummary(){
+  var D=window.D;
+  var monthVal=document.getElementById('hh-summary-month').value;
+  if(!monthVal){ alert('দয়া করে একটা মাস বেছে নিন!'); return; }
+  var parts=monthVal.split('-'); var yr=Number(parts[0]), mo=Number(parts[1])-1;
+  function inMonth(dateStr){ if(!dateStr) return false; var d=new Date(dateStr); return d.getFullYear()===yr&&d.getMonth()===mo; }
+
+  var hhM=(D.household||[]).filter(function(i){ return inMonth(i.date); });
+  var total=hhM.reduce(function(s,i){ return s+Number(i.amount||0); },0);
+
+  var byCategory={};
+  hhM.forEach(function(i){ var c=i.category||'অন্যান্য'; byCategory[c]=(byCategory[c]||0)+Number(i.amount||0); });
+  var categories=Object.keys(byCategory).sort(function(a,b){ return byCategory[b]-byCategory[a]; });
+
+  var monthLabel=BN_MONTHS[mo]+' '+yr.toLocaleString('bn-BD',{useGrouping:false});
+  var genDate=new Date().toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'});
+
+  var catRows=categories.length?categories.map(function(c){
+    return '<tr><td style="padding:6px 8px;border:1px solid #555;">'+c+'</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+tk(byCategory[c])+'</td></tr>';
+  }).join(''):'<tr><td colspan="2" style="padding:8px;border:1px solid #555;text-align:center;color:#888;">এই মাসে কোনো সংসার খরচ যোগ করা হয়নি</td></tr>';
+
+  var detailRows=hhM.length?hhM.slice().reverse().map(function(i,idx){
+    return '<tr><td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+i.date+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+(i.category||'অন্যান্য')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+(i.note||'—')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:right;">'+tk(i.amount)+'</td></tr>';
+  }).join(''):'';
+
+  var inv=document.getElementById('invoice-area');
+  var html='<div style="max-width:720px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:16px;border:1px solid #ccc;">'+
+    seInvoiceHeader('সংসার সামারি')+
+    '<div style="text-align:center;margin:4px 0 14px;">'+
+      '<h2 style="margin:0;font-size:1.15rem;">মাসিক সংসার (ব্যক্তিগত) খরচের সামারি — '+monthLabel+'</h2>'+
+      '<p style="margin:2px 0 0;color:#666;font-size:.76rem;">তৈরির তারিখ: '+genDate+' | এটি ব্যবসার হিসাব থেকে সম্পূর্ণ আলাদা</p>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:14px;">'+
+      '<thead><tr style="background:#f3f4f6;"><th style="padding:6px 8px;border:1px solid #555;text-align:left;">খাত</th><th style="padding:6px 8px;border:1px solid #555;text-align:right;">মোট (৳)</th></tr></thead>'+
+      '<tbody>'+catRows+
+        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">= মোট সংসার খরচ</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+tk(total)+'</td></tr>'+
+      '</tbody>'+
+    '</table>'+
+    (detailRows?(
+    '<table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:14px;">'+
+      '<thead><tr style="background:#f3f4f6;">'+
+        '<th style="padding:5px 6px;border:1px solid #555;width:30px;text-align:center;">ক্রম</th>'+
+        '<th style="padding:5px 6px;border:1px solid #555;width:80px;text-align:center;">তারিখ</th>'+
+        '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">খাত</th>'+
+        '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">নোট</th>'+
+        '<th style="padding:5px 6px;border:1px solid #555;width:80px;text-align:center;">টাকা</th>'+
+      '</tr></thead><tbody>'+detailRows+'</tbody>'+
+    '</table>'):'')+
+    seInvoiceFooter('')+
+  '</div>';
+  inv.innerHTML=html;
+  window.print();
+  setTimeout(function(){ inv.innerHTML=''; },1500);
 }
 
 // ══ BAKI ══
