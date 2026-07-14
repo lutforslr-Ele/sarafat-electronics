@@ -160,6 +160,9 @@ tbody tr:hover{background:var(--surface2);}
     <button class="nav-item" onclick="switchTab('stock',this)"><span class="icon">📦</span> স্টক</button>
     <button class="nav-item" onclick="switchTab('baki',this)"><span class="icon">👥</span> বাকি পাওনা</button>
     <button class="nav-item" onclick="switchTab('supplier',this)"><span class="icon">🏷️</span> সরবরাহকারী জমা</button>
+    <button class="nav-item" onclick="switchTab('lent',this)"><span class="icon">🤝</span> টাকা ধার দিয়েছি</button>
+    <button class="nav-item" onclick="switchTab('borrowed',this)"><span class="icon">📥</span> টাকা ধার নিয়েছি</button>
+    <button class="nav-item" onclick="switchTab('advance',this)"><span class="icon">💰</span> অগ্রিম গ্রহণ</button>
     <button class="nav-item" onclick="switchTab('bkash',this)"><span class="icon">📱</span> বিকাশ ও বিল সার্ভিস</button>
     <button class="nav-item" onclick="switchTab('expenses',this)"><span class="icon">🧾</span> দোকান খরচ</button>
     <button class="nav-item" onclick="switchTab('household',this)"><span class="icon">🏠</span> সংসারের খরচ</button>
@@ -190,6 +193,9 @@ tbody tr:hover{background:var(--surface2);}
           <button class="user-menu-item" onclick="exportCSV('purchase');toggleUserMenu()">⬇️ ক্রয় Export</button>
           <button class="user-menu-item" onclick="exportCSV('sales');toggleUserMenu()">⬇️ বিক্রয় Export</button>
           <button class="user-menu-item" onclick="exportCSV('supplier');toggleUserMenu()">⬇️ সরবরাহকারী জমা Export</button>
+          <button class="user-menu-item" onclick="exportCSV('lent');toggleUserMenu()">⬇️ ধার দিয়েছি Export</button>
+          <button class="user-menu-item" onclick="exportCSV('borrowed');toggleUserMenu()">⬇️ ধার নিয়েছি Export</button>
+          <button class="user-menu-item" onclick="exportCSV('advance');toggleUserMenu()">⬇️ অগ্রিম গ্রহণ Export</button>
           <button class="user-menu-item" onclick="exportCSV('expenses');toggleUserMenu()">⬇️ দোকান খরচ Export</button>
           <button class="user-menu-item" onclick="exportCSV('household');toggleUserMenu()">⬇️ সংসারের খরচ Export</button>
           <button class="user-menu-item" onclick="exportCSV('warranty');toggleUserMenu()">⬇️ ওয়ারেন্টি/ড্যামেজ Export</button>
@@ -385,6 +391,105 @@ tbody tr:hover{background:var(--surface2);}
           <button class="btn btn-export" onclick="exportCSV('supplier')">⬇️ Excel Export</button>
         </div>
         <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>সরবরাহকারী</th><th>পণ্য</th><th>মোট মূল্য</th><th>পরিশোধ</th><th>বাকি</th><th>অ্যাকশন</th></tr></thead><tbody id="sup-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- LENT (টাকা ধার দিয়েছি) -->
+    <div id="lent" class="section">
+      <div class="stats-grid" style="margin-bottom:18px;">
+        <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">মোট ধার দিয়েছি</div><div class="stat-value" id="lent-total">৳ ০</div><div class="stat-icon">🤝</div></div>
+        <div class="stat-card" style="--c:#00d68f"><div class="stat-label">ফেরত পেয়েছি</div><div class="stat-value" id="lent-received">৳ ০</div><div class="stat-icon">💵</div></div>
+        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">এখনো পাওনা আছি</div><div class="stat-value" id="lent-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🤝 নতুন ধার এন্ট্রি (আমি টাকা দিয়েছি)</div>
+        <form onsubmit="addLent(event)">
+          <div class="form-grid">
+            <div class="form-group"><label>তারিখ</label><input type="date" id="lent-date" required></div>
+            <div class="form-group"><label>যাকে দিয়েছেন তার নাম</label><input type="text" id="lent-name" placeholder="যেমন: রহিম সাহেব" required></div>
+            <div class="form-group"><label>ফোন নম্বর</label><input type="text" id="lent-phone" placeholder="যেমন: 01XXXXXXXXX"></div>
+            <div class="form-group"><label>টাকার পরিমাণ (৳)</label><input type="number" id="lent-amount" min="1" placeholder="যত টাকা দিয়েছেন" required></div>
+            <div class="form-group full"><label>নোট (ঐচ্ছিক)</label><input type="text" id="lent-note" placeholder="যেমন: কারণ বা বিশেষ কোনো তথ্য"></div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">✅ সংরক্ষণ করুন</button>
+            <button type="button" class="btn btn-export" onclick="exportCSV('lent')">⬇️ Excel Export</button>
+          </div>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📋 ধার দেওয়ার তালিকা</div>
+        <div class="toolbar">
+          <div class="search-box"><input type="text" id="lent-search" placeholder="নাম খুঁজুন..." oninput="renderLent()"></div>
+          <select id="lent-filter" onchange="renderLent()" style="width:auto;"><option value="">সব এন্ট্রি</option><option value="due">শুধু বাকি</option><option value="paid">শুধু ফেরত পাওয়া</option></select>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>নাম</th><th>ফোন</th><th>মোট দিয়েছি</th><th>ফেরত পেয়েছি</th><th>বাকি পাওনা</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="lent-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- BORROWED (টাকা ধার নিয়েছি) -->
+    <div id="borrowed" class="section">
+      <div class="stats-grid" style="margin-bottom:18px;">
+        <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">মোট ধার নিয়েছি</div><div class="stat-value" id="borrowed-total">৳ ০</div><div class="stat-icon">📥</div></div>
+        <div class="stat-card" style="--c:#00d68f"><div class="stat-label">পরিশোধ করেছি</div><div class="stat-value" id="borrowed-paid">৳ ০</div><div class="stat-icon">💵</div></div>
+        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">এখনো দেনা আছি</div><div class="stat-value" id="borrowed-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📥 নতুন ধার এন্ট্রি (আমি টাকা নিয়েছি)</div>
+        <form onsubmit="addBorrowed(event)">
+          <div class="form-grid">
+            <div class="form-group"><label>তারিখ</label><input type="date" id="borrowed-date" required></div>
+            <div class="form-group"><label>যার থেকে নিয়েছেন তার নাম</label><input type="text" id="borrowed-name" placeholder="যেমন: করিম সাহেব" required></div>
+            <div class="form-group"><label>ফোন নম্বর</label><input type="text" id="borrowed-phone" placeholder="যেমন: 01XXXXXXXXX"></div>
+            <div class="form-group"><label>টাকার পরিমাণ (৳)</label><input type="number" id="borrowed-amount" min="1" placeholder="যত টাকা নিয়েছেন" required></div>
+            <div class="form-group full"><label>নোট (ঐচ্ছিক)</label><input type="text" id="borrowed-note" placeholder="যেমন: কারণ বা বিশেষ কোনো তথ্য"></div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">✅ সংরক্ষণ করুন</button>
+            <button type="button" class="btn btn-export" onclick="exportCSV('borrowed')">⬇️ Excel Export</button>
+          </div>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📋 ধার নেওয়ার তালিকা</div>
+        <div class="toolbar">
+          <div class="search-box"><input type="text" id="borrowed-search" placeholder="নাম খুঁজুন..." oninput="renderBorrowed()"></div>
+          <select id="borrowed-filter" onchange="renderBorrowed()" style="width:auto;"><option value="">সব এন্ট্রি</option><option value="due">শুধু বাকি</option><option value="paid">শুধু পরিশোধিত</option></select>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>নাম</th><th>ফোন</th><th>মোট নিয়েছি</th><th>পরিশোধ করেছি</th><th>বাকি দেনা</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="borrowed-body"></tbody></table></div>
+      </div>
+    </div>
+
+    <!-- ADVANCE (অগ্রিম গ্রহণ) -->
+    <div id="advance" class="section">
+      <div class="stats-grid" style="margin-bottom:18px;">
+        <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">মোট অগ্রিম পেয়েছি</div><div class="stat-value" id="advance-total">৳ ০</div><div class="stat-icon">💰</div></div>
+        <div class="stat-card" style="--c:#00d68f"><div class="stat-label">সমাধান হয়েছে</div><div class="stat-value" id="advance-used">৳ ০</div><div class="stat-icon">✅</div></div>
+        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">এখনো আমার দায়</div><div class="stat-value" id="advance-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">💰 নতুন অগ্রিম এন্ট্রি (কেউ আমাকে আগাম দিয়েছে)</div>
+        <form onsubmit="addAdvance(event)">
+          <div class="form-grid">
+            <div class="form-group"><label>তারিখ</label><input type="date" id="advance-date" required></div>
+            <div class="form-group"><label>গ্রাহকের নাম</label><input type="text" id="advance-name" placeholder="যেমন: সোহেল সাহেব" required></div>
+            <div class="form-group"><label>ফোন নম্বর</label><input type="text" id="advance-phone" placeholder="যেমন: 01XXXXXXXXX"></div>
+            <div class="form-group"><label>অগ্রিমের পরিমাণ (৳)</label><input type="number" id="advance-amount" min="1" placeholder="যত টাকা পেয়েছেন" required></div>
+            <div class="form-group full"><label>কিসের জন্য / নোট</label><input type="text" id="advance-note" placeholder="যেমন: পণ্য অর্ডারের অগ্রিম"></div>
+          </div>
+          <div class="btn-row">
+            <button type="submit" class="btn btn-primary">✅ সংরক্ষণ করুন</button>
+            <button type="button" class="btn btn-export" onclick="exportCSV('advance')">⬇️ Excel Export</button>
+          </div>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="panel-title">📋 অগ্রিমের তালিকা</div>
+        <div class="toolbar">
+          <div class="search-box"><input type="text" id="advance-search" placeholder="নাম খুঁজুন..." oninput="renderAdvance()"></div>
+          <select id="advance-filter" onchange="renderAdvance()" style="width:auto;"><option value="">সব এন্ট্রি</option><option value="due">শুধু বকেয়া দায়</option><option value="paid">শুধু সমাধান হয়েছে</option></select>
+        </div>
+        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>গ্রাহক</th><th>ফোন</th><th>মোট অগ্রিম</th><th>সমাধান হয়েছে</th><th>বাকি দায়</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="advance-body"></tbody></table></div>
       </div>
     </div>
 
@@ -767,6 +872,51 @@ tbody tr:hover{background:var(--surface2);}
   </div>
 </div>
 
+<!-- LENT COLLECT MODAL -->
+<div class="modal-overlay" id="lent-pay-modal">
+  <div class="modal">
+    <div class="modal-title">🤝 ফেরত টাকা জমা নিন</div>
+    <input type="hidden" id="lent-pay-id">
+    <div class="form-group"><label>নাম</label><input type="text" id="lent-pay-name" readonly></div>
+    <div class="form-group"><label>বর্তমান বাকি পাওনা</label><input type="text" id="lent-pay-due" readonly></div>
+    <div class="form-group"><label>ফেরত পাওয়ার পরিমাণ (৳)</label><input type="number" id="lent-pay-amt" min="1" placeholder="টাকার পরিমাণ লিখুন"></div>
+    <div class="modal-btns">
+      <button class="btn btn-success" onclick="confirmLentCollect()">✅ নিশ্চিত করুন</button>
+      <button class="btn" onclick="closeLentPayModal()" style="background:var(--surface2);color:var(--muted);">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- BORROWED PAY MODAL -->
+<div class="modal-overlay" id="borrowed-pay-modal">
+  <div class="modal">
+    <div class="modal-title">📥 পরিশোধের টাকা যোগ করুন</div>
+    <input type="hidden" id="borrowed-pay-id">
+    <div class="form-group"><label>নাম</label><input type="text" id="borrowed-pay-name" readonly></div>
+    <div class="form-group"><label>বর্তমান বাকি দেনা</label><input type="text" id="borrowed-pay-due" readonly></div>
+    <div class="form-group"><label>পরিশোধের পরিমাণ (৳)</label><input type="number" id="borrowed-pay-amt" min="1" placeholder="টাকার পরিমাণ লিখুন"></div>
+    <div class="modal-btns">
+      <button class="btn btn-success" onclick="confirmBorrowedPay()">✅ নিশ্চিত করুন</button>
+      <button class="btn" onclick="closeBorrowedPayModal()" style="background:var(--surface2);color:var(--muted);">বাতিল</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADVANCE USE MODAL -->
+<div class="modal-overlay" id="advance-pay-modal">
+  <div class="modal">
+    <div class="modal-title">💰 অগ্রিম সমাধান করুন</div>
+    <input type="hidden" id="advance-pay-id">
+    <div class="form-group"><label>গ্রাহক</label><input type="text" id="advance-pay-name" readonly></div>
+    <div class="form-group"><label>বর্তমান বাকি দায়</label><input type="text" id="advance-pay-due" readonly></div>
+    <div class="form-group"><label>সমাধান করার পরিমাণ (৳)</label><input type="number" id="advance-pay-amt" min="1" placeholder="টাকার পরিমাণ লিখুন"></div>
+    <div class="modal-btns">
+      <button class="btn btn-success" onclick="confirmAdvanceUse()">✅ নিশ্চিত করুন</button>
+      <button class="btn" onclick="closeAdvancePayModal()" style="background:var(--surface2);color:var(--muted);">বাতিল</button>
+    </div>
+  </div>
+</div>
+
 <!-- PAY MODAL -->
 <div class="modal-overlay" id="pay-modal">
   <div class="modal">
@@ -813,7 +963,7 @@ tbody tr:hover{background:var(--surface2);}
 <script>
 // অফলাইন ব্যাকআপ থেকে সঙ্গে সঙ্গে ডেটা লোড করা হচ্ছে, যাতে ইন্টারনেট না থাকলেও শেষ সিঙ্ক করা তথ্য দেখা যায়
 (function(){
-  var fallback = { purchases: [], sales: [], stock: [], repairs: [], expenses: [], household: [], warranty: [], bkash: [] };
+  var fallback = { purchases: [], sales: [], stock: [], repairs: [], expenses: [], household: [], warranty: [], bkash: [], lent: [], borrowed: [], advance: [] };
   try {
     var raw = localStorage.getItem('sarafat_local_backup');
     if (raw) {
@@ -861,13 +1011,16 @@ onValue(ref(db, 'data'), function(snapshot) {
       expenses: val.expenses ? Object.values(val.expenses) : [],
       household: val.household ? Object.values(val.household) : [],
       warranty: val.warranty ? Object.values(val.warranty) : [],
-      bkash: val.bkash ? Object.values(val.bkash) : []
+      bkash: val.bkash ? Object.values(val.bkash) : [],
+      lent: val.lent ? Object.values(val.lent) : [],
+      borrowed: val.borrowed ? Object.values(val.borrowed) : [],
+      advance: val.advance ? Object.values(val.advance) : []
     };
   } else {
-    window.D = { purchases: [], sales: [], stock: [], repairs: [], expenses: [], household: [], warranty: [], bkash: [] };
+    window.D = { purchases: [], sales: [], stock: [], repairs: [], expenses: [], household: [], warranty: [], bkash: [], lent: [], borrowed: [], advance: [] };
   }
   updateAll();
-  renderPurchases(); fillDateFilter(); renderSales(); renderStock(); renderBaki(); renderSupplier(); renderRepair(); renderRepairPartsDraft(); renderExpenses(); renderHousehold(); renderWarranty(); renderPnl(); renderBkash(); refreshProdIdDatalist(); checkPurchaseProdId();
+  renderPurchases(); fillDateFilter(); renderSales(); renderStock(); renderBaki(); renderSupplier(); renderRepair(); renderRepairPartsDraft(); renderExpenses(); renderHousehold(); renderWarranty(); renderPnl(); renderBkash(); renderLent(); renderBorrowed(); renderAdvance(); refreshProdIdDatalist(); checkPurchaseProdId();
   setSyncStatus('synced', 'Firebase সিঙ্ক ✓');
   showSyncTime();
   try {
@@ -902,6 +1055,9 @@ var exDateEl=document.getElementById('ex-date'); if(exDateEl) exDateEl.valueAsDa
 var hhDateEl=document.getElementById('hh-date'); if(hhDateEl) hhDateEl.valueAsDate = now;
 var waDateEl=document.getElementById('wa-date'); if(waDateEl) waDateEl.valueAsDate = now;
 var bkDateEl=document.getElementById('bk-date'); if(bkDateEl) bkDateEl.valueAsDate = now;
+var lentDateEl=document.getElementById('lent-date'); if(lentDateEl) lentDateEl.valueAsDate = now;
+var borrowedDateEl=document.getElementById('borrowed-date'); if(borrowedDateEl) borrowedDateEl.valueAsDate = now;
+var advanceDateEl=document.getElementById('advance-date'); if(advanceDateEl) advanceDateEl.valueAsDate = now;
 var summaryMonthEl=document.getElementById('summary-month'); if(summaryMonthEl) summaryMonthEl.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 var hhSummaryMonthEl=document.getElementById('hh-summary-month'); if(hhSummaryMonthEl) hhSummaryMonthEl.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 var days=['রবিবার','সোমবার','মঙ্গলবার','বুধবার','বৃহস্পতিবার','শুক্রবার','শনিবার'];
@@ -917,7 +1073,7 @@ window.addEventListener('online', function(){ setSyncStatus('syncing','সংয
     var raw = localStorage.getItem('sarafat_local_backup');
     if (raw) {
       updateAll();
-      renderPurchases(); fillDateFilter(); renderSales(); renderStock(); renderBaki(); renderSupplier(); renderRepair(); renderRepairPartsDraft(); renderExpenses(); renderHousehold(); renderWarranty(); renderPnl(); renderBkash(); refreshProdIdDatalist(); checkPurchaseProdId();
+      renderPurchases(); fillDateFilter(); renderSales(); renderStock(); renderBaki(); renderSupplier(); renderRepair(); renderRepairPartsDraft(); renderExpenses(); renderHousehold(); renderWarranty(); renderPnl(); renderBkash(); renderLent(); renderBorrowed(); renderAdvance(); refreshProdIdDatalist(); checkPurchaseProdId();
       var t = localStorage.getItem('sarafat_local_backup_time');
       if (t) {
         var d = new Date(t);
@@ -973,8 +1129,14 @@ function saveToFirebase(){
   (window.D.warranty||[]).forEach(function(i){ warrantyObj[i.id] = i; });
   var bkashObj = {};
   (window.D.bkash||[]).forEach(function(i){ bkashObj[i.id] = i; });
+  var lentObj = {};
+  (window.D.lent||[]).forEach(function(i){ lentObj[i.id] = i; });
+  var borrowedObj = {};
+  (window.D.borrowed||[]).forEach(function(i){ borrowedObj[i.id] = i; });
+  var advanceObj = {};
+  (window.D.advance||[]).forEach(function(i){ advanceObj[i.id] = i; });
 
-  window._fbSave('data', { purchases: purchasesObj, sales: salesObj, stock: stockObj, repairs: repairsObj, expenses: expensesObj, household: householdObj, warranty: warrantyObj, bkash: bkashObj })
+  window._fbSave('data', { purchases: purchasesObj, sales: salesObj, stock: stockObj, repairs: repairsObj, expenses: expensesObj, household: householdObj, warranty: warrantyObj, bkash: bkashObj, lent: lentObj, borrowed: borrowedObj, advance: advanceObj })
     .then(function(){ setSyncStatus('synced','সিঙ্ক সম্পন্ন ✓'); showSyncTime(); })
     .catch(function(){ setSyncStatus('error','সেভ ব্যর্থ'); showToast('❌ Firebase সেভ ব্যর্থ!','red'); });
 }
@@ -985,13 +1147,16 @@ function switchTab(id,btn){
   document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   if(btn) btn.classList.add('active');
-  var titles={dashboard:'ড্যাশবোর্ড',purchase:'ক্রয়',sales:'বিক্রয়',stock:'স্টক',baki:'বাকি পাওনা',supplier:'সরবরাহকারী জমা',bkash:'বিকাশ ও বিল সার্ভিস',expenses:'দোকান খরচ',household:'সংসারের খরচ',warranty:'ওয়ারেন্টি ও ড্যামেজ',pnl:'লাভ-ক্ষতি',repair:'মেরামত সার্ভিস'};
+  var titles={dashboard:'ড্যাশবোর্ড',purchase:'ক্রয়',sales:'বিক্রয়',stock:'স্টক',baki:'বাকি পাওনা',supplier:'সরবরাহকারী জমা',lent:'টাকা ধার দিয়েছি',borrowed:'টাকা ধার নিয়েছি',advance:'অগ্রিম গ্রহণ',bkash:'বিকাশ ও বিল সার্ভিস',expenses:'দোকান খরচ',household:'সংসারের খরচ',warranty:'ওয়ারেন্টি ও ড্যামেজ',pnl:'লাভ-ক্ষতি',repair:'মেরামত সার্ভিস'};
   document.getElementById('page-title').textContent=titles[id]||id;
   if(id==='purchase'){ renderPurchases(); fillDateFilter(); refreshProdIdDatalist(); checkPurchaseProdId(); }
   if(id==='sales'){ renderSales(); refreshProdIdDatalist(); }
   if(id==='stock') { renderStock(); refreshProdIdDatalist(); }
   if(id==='baki') renderBaki();
   if(id==='supplier') renderSupplier();
+  if(id==='lent') renderLent();
+  if(id==='borrowed') renderBorrowed();
+  if(id==='advance') renderAdvance();
   if(id==='bkash') renderBkash();
   if(id==='expenses') renderExpenses();
   if(id==='household') renderHousehold();
@@ -1881,6 +2046,173 @@ function confirmSupplierPay(){
 function closeSupplierPayModal(){ document.getElementById('sup-pay-modal').classList.remove('open'); }
 document.getElementById('sup-pay-modal').addEventListener('click',function(e){ if(e.target===this) closeSupplierPayModal(); });
 
+// ══ ধার-দেনা হেল্পার ══
+function loanTotal(i){ return Number(i.amount||0); }
+function loanSettled(i){ return Number(i.settled||0); }
+function loanDue(i){ return loanTotal(i)-loanSettled(i); }
+
+// ══ টাকা ধার দিয়েছি (LENT) ══
+function addLent(e){
+  e.preventDefault();
+  var item={ id:Date.now(), date:document.getElementById('lent-date').value, name:document.getElementById('lent-name').value, phone:document.getElementById('lent-phone').value||'', amount:Number(document.getElementById('lent-amount').value)||0, settled:0, note:document.getElementById('lent-note').value||'' };
+  window.D.lent=window.D.lent||[];
+  window.D.lent.push(item);
+  saveToFirebase();
+  document.getElementById('lent-name').value=''; document.getElementById('lent-phone').value=''; document.getElementById('lent-amount').value=''; document.getElementById('lent-note').value='';
+  showToast('✅ ধার দেওয়ার এন্ট্রি সংরক্ষিত হয়েছে','green');
+  renderLent();
+}
+function deleteLent(id){
+  if(!confirm('এই এন্ট্রিটি মুছবেন?')) return;
+  window.D.lent=(window.D.lent||[]).filter(function(i){ return i.id!==id; });
+  saveToFirebase(); renderLent();
+}
+function openLentPayModal(id){
+  var it=(window.D.lent||[]).find(function(i){ return i.id===id; }); if(!it) return;
+  document.getElementById('lent-pay-id').value=id;
+  document.getElementById('lent-pay-name').value=it.name;
+  document.getElementById('lent-pay-due').value='৳ '+loanDue(it).toLocaleString('bn-BD');
+  document.getElementById('lent-pay-amt').value='';
+  document.getElementById('lent-pay-modal').classList.add('open');
+}
+function closeLentPayModal(){ document.getElementById('lent-pay-modal').classList.remove('open'); }
+document.getElementById('lent-pay-modal').addEventListener('click',function(e){ if(e.target===this) closeLentPayModal(); });
+function confirmLentCollect(){
+  var id=Number(document.getElementById('lent-pay-id').value);
+  var amt=Number(document.getElementById('lent-pay-amt').value);
+  if(!amt||amt<=0){ alert('সঠিক পরিমাণ দিন!'); return; }
+  var idx=(window.D.lent||[]).findIndex(function(i){ return i.id===id; }); if(idx<0) return;
+  var it=window.D.lent[idx];
+  var due=loanDue(it);
+  it.settled=Math.min(loanSettled(it)+amt,loanTotal(it));
+  saveToFirebase();
+  closeLentPayModal();
+  showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' ফেরত পেলেন! বাকি পাওনা: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
+  renderLent();
+}
+function renderLent(){
+  window.D.lent=window.D.lent||[];
+  var q=(document.getElementById('lent-search')?document.getElementById('lent-search').value||'':'').toLowerCase();
+  var f=document.getElementById('lent-filter')?document.getElementById('lent-filter').value||'':'';
+  var list=window.D.lent.filter(function(i){ var due=loanDue(i); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.name.toLowerCase().includes(q); });
+  var tb=document.getElementById('lent-body');
+  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ ফেরত পেয়েছি')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openLentPayModal('+i.id+')">💳 ফেরত নিলাম</button>':'')+'<button class="btn btn-danger" onclick="deleteLent('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো ধার দেওয়ার এন্ট্রি নেই</td></tr>';
+  var tt=window.D.lent.reduce(function(s,i){ return s+loanTotal(i); },0);
+  var ts=window.D.lent.reduce(function(s,i){ return s+loanSettled(i); },0);
+  var td=window.D.lent.reduce(function(s,i){ return s+loanDue(i); },0);
+  if(document.getElementById('lent-total')) document.getElementById('lent-total').textContent=tk(tt);
+  if(document.getElementById('lent-received')) document.getElementById('lent-received').textContent=tk(ts);
+  if(document.getElementById('lent-due')) document.getElementById('lent-due').textContent=tk(td);
+}
+
+// ══ টাকা ধার নিয়েছি (BORROWED) ══
+function addBorrowed(e){
+  e.preventDefault();
+  var item={ id:Date.now(), date:document.getElementById('borrowed-date').value, name:document.getElementById('borrowed-name').value, phone:document.getElementById('borrowed-phone').value||'', amount:Number(document.getElementById('borrowed-amount').value)||0, settled:0, note:document.getElementById('borrowed-note').value||'' };
+  window.D.borrowed=window.D.borrowed||[];
+  window.D.borrowed.push(item);
+  saveToFirebase();
+  document.getElementById('borrowed-name').value=''; document.getElementById('borrowed-phone').value=''; document.getElementById('borrowed-amount').value=''; document.getElementById('borrowed-note').value='';
+  showToast('✅ ধার নেওয়ার এন্ট্রি সংরক্ষিত হয়েছে','green');
+  renderBorrowed();
+}
+function deleteBorrowed(id){
+  if(!confirm('এই এন্ট্রিটি মুছবেন?')) return;
+  window.D.borrowed=(window.D.borrowed||[]).filter(function(i){ return i.id!==id; });
+  saveToFirebase(); renderBorrowed();
+}
+function openBorrowedPayModal(id){
+  var it=(window.D.borrowed||[]).find(function(i){ return i.id===id; }); if(!it) return;
+  document.getElementById('borrowed-pay-id').value=id;
+  document.getElementById('borrowed-pay-name').value=it.name;
+  document.getElementById('borrowed-pay-due').value='৳ '+loanDue(it).toLocaleString('bn-BD');
+  document.getElementById('borrowed-pay-amt').value='';
+  document.getElementById('borrowed-pay-modal').classList.add('open');
+}
+function closeBorrowedPayModal(){ document.getElementById('borrowed-pay-modal').classList.remove('open'); }
+document.getElementById('borrowed-pay-modal').addEventListener('click',function(e){ if(e.target===this) closeBorrowedPayModal(); });
+function confirmBorrowedPay(){
+  var id=Number(document.getElementById('borrowed-pay-id').value);
+  var amt=Number(document.getElementById('borrowed-pay-amt').value);
+  if(!amt||amt<=0){ alert('সঠিক পরিমাণ দিন!'); return; }
+  var idx=(window.D.borrowed||[]).findIndex(function(i){ return i.id===id; }); if(idx<0) return;
+  var it=window.D.borrowed[idx];
+  var due=loanDue(it);
+  it.settled=Math.min(loanSettled(it)+amt,loanTotal(it));
+  saveToFirebase();
+  closeBorrowedPayModal();
+  showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' পরিশোধ করলেন! বাকি দেনা: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
+  renderBorrowed();
+}
+function renderBorrowed(){
+  window.D.borrowed=window.D.borrowed||[];
+  var q=(document.getElementById('borrowed-search')?document.getElementById('borrowed-search').value||'':'').toLowerCase();
+  var f=document.getElementById('borrowed-filter')?document.getElementById('borrowed-filter').value||'':'';
+  var list=window.D.borrowed.filter(function(i){ var due=loanDue(i); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.name.toLowerCase().includes(q); });
+  var tb=document.getElementById('borrowed-body');
+  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openBorrowedPayModal('+i.id+')">💳 পরিশোধ করলাম</button>':'')+'<button class="btn btn-danger" onclick="deleteBorrowed('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো ধার নেওয়ার এন্ট্রি নেই</td></tr>';
+  var tt=window.D.borrowed.reduce(function(s,i){ return s+loanTotal(i); },0);
+  var ts=window.D.borrowed.reduce(function(s,i){ return s+loanSettled(i); },0);
+  var td=window.D.borrowed.reduce(function(s,i){ return s+loanDue(i); },0);
+  if(document.getElementById('borrowed-total')) document.getElementById('borrowed-total').textContent=tk(tt);
+  if(document.getElementById('borrowed-paid')) document.getElementById('borrowed-paid').textContent=tk(ts);
+  if(document.getElementById('borrowed-due')) document.getElementById('borrowed-due').textContent=tk(td);
+}
+
+// ══ অগ্রিম গ্রহণ (ADVANCE) ══
+function addAdvance(e){
+  e.preventDefault();
+  var item={ id:Date.now(), date:document.getElementById('advance-date').value, name:document.getElementById('advance-name').value, phone:document.getElementById('advance-phone').value||'', amount:Number(document.getElementById('advance-amount').value)||0, settled:0, note:document.getElementById('advance-note').value||'' };
+  window.D.advance=window.D.advance||[];
+  window.D.advance.push(item);
+  saveToFirebase();
+  document.getElementById('advance-name').value=''; document.getElementById('advance-phone').value=''; document.getElementById('advance-amount').value=''; document.getElementById('advance-note').value='';
+  showToast('✅ অগ্রিম এন্ট্রি সংরক্ষিত হয়েছে','green');
+  renderAdvance();
+}
+function deleteAdvance(id){
+  if(!confirm('এই এন্ট্রিটি মুছবেন?')) return;
+  window.D.advance=(window.D.advance||[]).filter(function(i){ return i.id!==id; });
+  saveToFirebase(); renderAdvance();
+}
+function openAdvancePayModal(id){
+  var it=(window.D.advance||[]).find(function(i){ return i.id===id; }); if(!it) return;
+  document.getElementById('advance-pay-id').value=id;
+  document.getElementById('advance-pay-name').value=it.name;
+  document.getElementById('advance-pay-due').value='৳ '+loanDue(it).toLocaleString('bn-BD');
+  document.getElementById('advance-pay-amt').value='';
+  document.getElementById('advance-pay-modal').classList.add('open');
+}
+function closeAdvancePayModal(){ document.getElementById('advance-pay-modal').classList.remove('open'); }
+document.getElementById('advance-pay-modal').addEventListener('click',function(e){ if(e.target===this) closeAdvancePayModal(); });
+function confirmAdvanceUse(){
+  var id=Number(document.getElementById('advance-pay-id').value);
+  var amt=Number(document.getElementById('advance-pay-amt').value);
+  if(!amt||amt<=0){ alert('সঠিক পরিমাণ দিন!'); return; }
+  var idx=(window.D.advance||[]).findIndex(function(i){ return i.id===id; }); if(idx<0) return;
+  var it=window.D.advance[idx];
+  var due=loanDue(it);
+  it.settled=Math.min(loanSettled(it)+amt,loanTotal(it));
+  saveToFirebase();
+  closeAdvancePayModal();
+  showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' সমাধান হলো! বাকি দায়: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
+  renderAdvance();
+}
+function renderAdvance(){
+  window.D.advance=window.D.advance||[];
+  var q=(document.getElementById('advance-search')?document.getElementById('advance-search').value||'':'').toLowerCase();
+  var f=document.getElementById('advance-filter')?document.getElementById('advance-filter').value||'':'';
+  var list=window.D.advance.filter(function(i){ var due=loanDue(i); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.name.toLowerCase().includes(q); });
+  var tb=document.getElementById('advance-body');
+  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ সমাধান হয়েছে')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openAdvancePayModal('+i.id+')">💳 সমাধান করলাম</button>':'')+'<button class="btn btn-danger" onclick="deleteAdvance('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো অগ্রিম এন্ট্রি নেই</td></tr>';
+  var tt=window.D.advance.reduce(function(s,i){ return s+loanTotal(i); },0);
+  var ts=window.D.advance.reduce(function(s,i){ return s+loanSettled(i); },0);
+  var td=window.D.advance.reduce(function(s,i){ return s+loanDue(i); },0);
+  if(document.getElementById('advance-total')) document.getElementById('advance-total').textContent=tk(tt);
+  if(document.getElementById('advance-used')) document.getElementById('advance-used').textContent=tk(ts);
+  if(document.getElementById('advance-due')) document.getElementById('advance-due').textContent=tk(td);
+}
+
 // ══ INVOICE ══
 var SE_LOGO='data:image/jpeg;base64,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';
 function printInvoice(id){
@@ -2402,6 +2734,15 @@ function exportCSV(type){
   } else if(type==='warranty'){
     rows=[['তারিখ','ধরন','পণ্য','পরিমাণ','মূল্য','অবস্থা','নোট']];
     (window.D.warranty||[]).forEach(function(i){ rows.push([i.date,i.type==='damage'?'ড্যামেজ':'ওয়ারেন্টি',i.productName,i.qty,i.value,i.status==='resolved'?'সমাধান হয়েছে':'প্রক্রিয়াধীন',i.note||'']); }); filename='ওয়ারেন্টি_ড্যামেজ.csv';
+  } else if(type==='lent'){
+    rows=[['তারিখ','নাম','ফোন','মোট দিয়েছি','ফেরত পেয়েছি','বাকি পাওনা','নোট']];
+    (window.D.lent||[]).forEach(function(i){ rows.push([i.date,i.name,i.phone||'',loanTotal(i),loanSettled(i),loanDue(i),i.note||'']); }); filename='ধার_দিয়েছি.csv';
+  } else if(type==='borrowed'){
+    rows=[['তারিখ','নাম','ফোন','মোট নিয়েছি','পরিশোধ করেছি','বাকি দেনা','নোট']];
+    (window.D.borrowed||[]).forEach(function(i){ rows.push([i.date,i.name,i.phone||'',loanTotal(i),loanSettled(i),loanDue(i),i.note||'']); }); filename='ধার_নিয়েছি.csv';
+  } else if(type==='advance'){
+    rows=[['তারিখ','গ্রাহক','ফোন','মোট অগ্রিম','সমাধান হয়েছে','বাকি দায়','নোট']];
+    (window.D.advance||[]).forEach(function(i){ rows.push([i.date,i.name,i.phone||'',loanTotal(i),loanSettled(i),loanDue(i),i.note||'']); }); filename='অগ্রিম_গ্রহণ.csv';
   }
   var csv=rows.map(function(r){ return r.map(function(c){ return '"'+c+'"'; }).join(','); }).join('\n');
   var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
