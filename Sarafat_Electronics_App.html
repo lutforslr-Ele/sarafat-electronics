@@ -282,7 +282,6 @@ tbody tr:hover{background:var(--surface2);}
       <div class="stats-grid" style="margin-bottom:18px;">
         <div class="stat-card" style="--c:#00b0d7"><div class="stat-label">আজকের নগদ বিক্রয়</div><div class="stat-value" id="sale-today-cash">৳ ০</div><div class="stat-icon">💵</div></div>
         <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">আজকের ডিজিটাল বিক্রয়</div><div class="stat-value" id="sale-today-digital">৳ ০</div><div class="stat-icon">📱</div></div>
-        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">আজকের বাকি বিক্রয়</div><div class="stat-value" id="sale-today-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
         <div class="stat-card" style="--c:#00d68f"><div class="stat-label">আজকের মোট বিক্রয়</div><div class="stat-value" id="sale-today-total">৳ ০</div><div class="stat-icon">🛍️</div></div>
       </div>
       <div class="panel">
@@ -317,7 +316,7 @@ tbody tr:hover{background:var(--surface2);}
         <div class="panel-title">📋 বিক্রয় ইতিহাস</div>
         <div class="toolbar">
           <div class="search-box"><input type="text" id="s-search" placeholder="গ্রাহক বা পণ্য খুঁজুন..." oninput="renderSales()"></div>
-          <select id="s-filter" onchange="renderSales()" style="width:auto;"><option value="">সব এন্ট্রি</option><option value="due">শুধু বাকি</option><option value="paid">শুধু পরিশোধিত</option></select>
+          <p style="margin:2px 0 0;color:var(--muted);font-size:.78rem;">বাকির সম্পূর্ণ হিসাব এখন 👥 <b>বাকি পাওনা</b> ট্যাবে একসাথে পাবেন।</p>
         </div>
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);font-size:.85rem;">
@@ -328,7 +327,7 @@ tbody tr:hover{background:var(--surface2);}
         </div>
         <div class="table-wrap"><table><thead><tr>
           <th style="width:36px;"><input type="checkbox" id="s-head-check" onchange="toggleSelectAllSales(this)"></th>
-          <th>তারিখ</th><th>পণ্য আইডি</th><th>গ্রাহক</th><th>ফোন</th><th>পরিমাণ</th><th>মোট</th><th>গ্রহণ</th><th>মাধ্যম</th><th>বাকি</th><th>অ্যাকশন</th>
+          <th>তারিখ</th><th>পণ্য আইডি</th><th>গ্রাহক</th><th>ফোন</th><th>পরিমাণ</th><th>মোট</th><th>গ্রহণ</th><th>মাধ্যম</th><th>অ্যাকশন</th>
         </tr></thead><tbody id="s-body"></tbody></table></div>
       </div>
     </div>
@@ -366,13 +365,37 @@ tbody tr:hover{background:var(--surface2);}
 
     <!-- BAKI -->
     <div id="baki" class="section">
+      <div class="stats-grid" style="margin-bottom:18px;">
+        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">সর্বমোট বাকি পাওনা</div><div class="stat-value" id="baki-total-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
+        <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">মোট বাকি গ্রাহক</div><div class="stat-value" id="baki-total-customers">০</div><div class="stat-icon">👥</div></div>
+        <div class="stat-card" style="--c:#00b0d7"><div class="stat-label">বিক্রয়ের বাকি</div><div class="stat-value" id="baki-sale-due">৳ ০</div><div class="stat-icon">🛍️</div></div>
+        <div class="stat-card" style="--c:#a78bfa"><div class="stat-label">বিকাশ ও বিলের বাকি</div><div class="stat-value" id="baki-bkash-due">৳ ০</div><div class="stat-icon">📱</div></div>
+        <div class="stat-card" style="--c:#ffaa00"><div class="stat-label">মেরামত সার্ভিসের বাকি</div><div class="stat-value" id="baki-repair-due">৳ ০</div><div class="stat-icon">🔧</div></div>
+      </div>
       <div class="panel">
-        <div class="panel-title">👥 বাকি ও দেনা-পাওনা তালিকা</div>
+        <div class="panel-title">👥 বাকি ও দেনা-পাওনা তালিকা (বিক্রয় + বিকাশ/বিল + মেরামত — সব একসাথে)</div>
         <div class="toolbar">
           <div class="search-box"><input type="text" id="b-search" placeholder="গ্রাহকের নাম খুঁজুন..." oninput="renderBaki()"></div>
+          <select id="b-source-filter" onchange="renderBaki()" style="width:auto;">
+            <option value="">সব ধরন</option>
+            <option value="sale">শুধু বিক্রয়</option>
+            <option value="bkash">শুধু বিকাশ/বিল</option>
+            <option value="repair">শুধু মেরামত</option>
+          </select>
           <button class="btn btn-export" onclick="exportCSV('baki')">⬇️ Excel Export</button>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>গ্রাহক</th><th>ফোন</th><th>মোট বিক্রয়</th><th>নগদ জমা</th><th>বাকি</th><th>অ্যাকশন</th></tr></thead><tbody id="b-body"></tbody></table></div>
+        <p style="margin:2px 0 10px;color:var(--muted);font-size:.78rem;">💡 একই গ্রাহকের একাধিক বিক্রয়/বিকাশ/মেরামত এন্ট্রি সিলেক্ট করে একসাথে এক রশিদে প্রিন্ট করতে পারবেন।</p>
+        <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);font-size:.85rem;">
+            <input type="checkbox" id="baki-select-all" onchange="toggleSelectAllBaki(this)"> সব সিলেক্ট করুন
+          </label>
+          <button class="btn btn-print" onclick="printSelectedBaki()" style="padding:7px 14px;">🖨️ সিলেক্ট করা সব একসাথে এক রশিদে প্রিন্ট</button>
+          <span id="baki-selected-count" style="color:var(--muted);font-size:.82rem;"></span>
+        </div>
+        <div class="table-wrap"><table><thead><tr>
+          <th style="width:36px;"><input type="checkbox" id="baki-head-check" onchange="toggleSelectAllBaki(this)"></th>
+          <th>তারিখ</th><th>ধরন</th><th>গ্রাহক</th><th>ফোন</th><th>বিবরণ</th><th>মোট</th><th>জমা</th><th>বাকি</th><th>অ্যাকশন</th>
+        </tr></thead><tbody id="b-body"></tbody></table></div>
       </div>
     </div>
 
@@ -501,7 +524,6 @@ tbody tr:hover{background:var(--surface2);}
         <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">এই মাসের মোট কমিশন</div><div class="stat-value" id="bk-month-commission">৳ ০</div><div class="stat-icon">📈</div></div>
         <div class="stat-card" style="--c:#00b0d7"><div class="stat-label">মোট ক্যাশ-ইন/আউট (এই মাস)</div><div class="stat-value" id="bk-month-volume">৳ ০</div><div class="stat-icon">📱</div></div>
         <div class="stat-card" style="--c:#ffaa00"><div class="stat-label">সর্বমোট কমিশন আয়</div><div class="stat-value" id="bk-all-commission">৳ ০</div><div class="stat-icon">🏆</div></div>
-        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">মোট বাকি (ফ্লেক্সিলোড/বিকাশ)</div><div class="stat-value" id="bk-total-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
       </div>
       <div class="panel">
         <div class="panel-title">📱 নতুন বিকাশ/বিল লেনদেন যোগ করুন</div>
@@ -541,10 +563,6 @@ tbody tr:hover{background:var(--surface2);}
         <div class="table-wrap"><table><thead><tr><th>ধরন</th><th>লেনদেনের পরিমাণ</th><th>কমিশন</th></tr></thead><tbody id="bk-summary-body"></tbody></table></div>
       </div>
       <div class="panel">
-        <div class="panel-title">⚠️ বিকাশ/ফ্লেক্সিলোড বাকির তালিকা</div>
-        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>গ্রাহক</th><th>ফোন</th><th>মোট</th><th>জমা</th><th>বাকি</th><th>অ্যাকশন</th></tr></thead><tbody id="bk-due-body"></tbody></table></div>
-      </div>
-      <div class="panel">
         <div class="panel-title">📋 সব লেনদেনের তালিকা</div>
         <div class="toolbar">
           <div class="search-box"><input type="text" id="bk-search" placeholder="গ্রাহক বা নোট খুঁজুন..." oninput="renderBkash()"></div>
@@ -556,13 +574,9 @@ tbody tr:hover{background:var(--surface2);}
             <option value="electricity">বিদ্যুৎ বিল কালেকশন</option>
             <option value="otherbill">অন্যান্য বিল</option>
           </select>
-          <select id="bk-due-filter" onchange="renderBkash()" style="width:auto;">
-            <option value="">সব এন্ট্রি</option>
-            <option value="due">শুধু বাকি</option>
-            <option value="paid">শুধু পরিশোধিত</option>
-          </select>
         </div>
-        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>লেনদেন</th><th>কমিশন</th><th>জমা</th><th>বাকি</th><th>গ্রাহক</th><th>ফোন</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="bk-body"></tbody></table></div>
+        <p style="margin:2px 0 10px;color:var(--muted);font-size:.78rem;">বাকির সম্পূর্ণ হিসাব এখন 👥 <b>বাকি পাওনা</b> ট্যাবে একসাথে পাবেন।</p>
+        <div class="table-wrap"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>লেনদেন</th><th>কমিশন</th><th>জমা</th><th>গ্রাহক</th><th>ফোন</th><th>নোট</th><th>অ্যাকশন</th></tr></thead><tbody id="bk-body"></tbody></table></div>
       </div>
     </div>
 
@@ -760,7 +774,6 @@ tbody tr:hover{background:var(--surface2);}
         <div class="stat-card" style="--c:#6c63ff"><div class="stat-label">মোট মেরামত কাজ</div><div class="stat-value" id="rep-total-count">০</div><div class="stat-icon">🔧</div></div>
         <div class="stat-card" style="--c:#00d68f"><div class="stat-label">মোট আয়</div><div class="stat-value" id="rep-total-amount">৳ ০</div><div class="stat-icon">💰</div></div>
         <div class="stat-card" style="--c:#00b0d7"><div class="stat-label">নগদ সংগ্রহ</div><div class="stat-value" id="rep-total-cash">৳ ০</div><div class="stat-icon">💵</div></div>
-        <div class="stat-card" style="--c:#ff3d71"><div class="stat-label">বাকি পাওনা</div><div class="stat-value" id="rep-total-due">৳ ০</div><div class="stat-icon">⚠️</div></div>
       </div>
       <div class="panel">
         <div class="panel-title">🔧 নতুন মেরামত এন্ট্রি</div>
@@ -832,12 +845,8 @@ tbody tr:hover{background:var(--surface2);}
             <option value="ডেলিভারি দেওয়া হয়েছে">📦 ডেলিভারি</option>
             <option value="বাতিল">❌ বাতিল</option>
           </select>
-          <select id="r-due-filter" onchange="renderRepair()" style="width:auto;">
-            <option value="">সব পেমেন্ট</option>
-            <option value="due">শুধু বাকি</option>
-            <option value="paid">শুধু পরিশোধিত</option>
-          </select>
         </div>
+        <p style="margin:2px 0 10px;color:var(--muted);font-size:.78rem;">বাকির সম্পূর্ণ হিসাব এখন 👥 <b>বাকি পাওনা</b> ট্যাবে একসাথে পাবেন।</p>
         <div style="margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--text);font-size:.85rem;">
             <input type="checkbox" id="r-select-all" onchange="toggleSelectAll(this)"> সব সিলেক্ট করুন
@@ -849,7 +858,7 @@ tbody tr:hover{background:var(--surface2);}
           <th style="width:36px;"><input type="checkbox" id="r-head-check" onchange="toggleSelectAll(this)"></th>
           <th>ক্রম নং</th><th>তারিখ</th><th>কাস্টমার</th><th>ফোন</th>
           <th>কাজের ধরণ</th><th>সমস্যা</th><th>রেট</th>
-          <th>নগদ</th><th>বাকি</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th>
+          <th>নগদ</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th>
         </tr></thead><tbody id="r-body"></tbody></table></div>
       </div>
     </div>
@@ -1440,20 +1449,17 @@ function deleteSale(id){
 }
 function renderSales(){
   var q=(document.getElementById('s-search').value||'').toLowerCase();
-  var f=document.getElementById('s-filter').value||'';
-  var list=window.D.sales.filter(function(i){ var due=Number(i.amount)-Number(i.paid); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.customer.toLowerCase().includes(q)||(i.prodId||'').toLowerCase().includes(q); });
+  var list=window.D.sales.filter(function(i){ return !q||i.customer.toLowerCase().includes(q)||(i.prodId||'').toLowerCase().includes(q); });
   var tb=document.getElementById('s-body');
-  tb.innerHTML=list.length?list.map(function(i){ var due=Number(i.amount)-Number(i.paid); var pm=i.payMethod==='digital'?'📱 ডিজিটাল':'💵 নগদ'; return '<tr><td><input type="checkbox" class="s-row-check" value="'+i.id+'" onchange="updateSelectedCountSales()"></td><td>'+i.date+'</td><td><span class="badge badge-green">'+(i.prodId||'N/A')+'</span></td><td>'+i.customer+'</td><td>'+(i.phone||'N/A')+'</td><td>'+Number(i.qty||1).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.amount)+'</td><td>'+tk(i.paid)+'</td><td>'+pm+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td class="action-cell"><button class="btn btn-print" onclick="printInvoice('+i.id+')">🖨️ রসিদ</button><button class="btn btn-danger" onclick="deleteSale('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="11">কোনো বিক্রয় নেই</td></tr>';
+  tb.innerHTML=list.length?list.map(function(i){ var pm=i.payMethod==='digital'?'📱 ডিজিটাল':'💵 নগদ'; return '<tr><td><input type="checkbox" class="s-row-check" value="'+i.id+'" onchange="updateSelectedCountSales()"></td><td>'+i.date+'</td><td><span class="badge badge-green">'+(i.prodId||'N/A')+'</span></td><td>'+i.customer+'</td><td>'+(i.phone||'N/A')+'</td><td>'+Number(i.qty||1).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.amount)+'</td><td>'+tk(i.paid)+'</td><td>'+pm+'</td><td class="action-cell"><button class="btn btn-print" onclick="printInvoice('+i.id+')">🖨️ রসিদ</button><button class="btn btn-danger" onclick="deleteSale('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="10">কোনো বিক্রয় নেই</td></tr>';
 
   var todayStr=new Date().toISOString().slice(0,10);
   var todaySales=window.D.sales.filter(function(i){ return i.date===todayStr; });
   var tCash=todaySales.filter(function(i){ return i.payMethod!=='digital'; }).reduce(function(s,i){ return s+Number(i.paid||0); },0);
   var tDigital=todaySales.filter(function(i){ return i.payMethod==='digital'; }).reduce(function(s,i){ return s+Number(i.paid||0); },0);
-  var tDue=todaySales.reduce(function(s,i){ return s+(Number(i.amount)-Number(i.paid)); },0);
   var tTotal=todaySales.reduce(function(s,i){ return s+Number(i.amount||0); },0);
   if(document.getElementById('sale-today-cash')) document.getElementById('sale-today-cash').textContent=tk(tCash);
   if(document.getElementById('sale-today-digital')) document.getElementById('sale-today-digital').textContent=tk(tDigital);
-  if(document.getElementById('sale-today-due')) document.getElementById('sale-today-due').textContent=tk(tDue);
   if(document.getElementById('sale-today-total')) document.getElementById('sale-today-total').textContent=tk(tTotal);
 }
 
@@ -1657,7 +1663,7 @@ function payBkashDue(id){
   if(item.paid>item.amount) item.paid=item.amount;
   saveToFirebase();
   showToast('✅ জমা গ্রহণ করা হয়েছে','green');
-  renderBkash(); updateAll();
+  renderBkash(); renderBaki(); updateAll();
 }
 function deleteBkash(id){
   if(!confirm('এই লেনদেনের এন্ট্রি মুছবেন?')) return;
@@ -1668,26 +1674,15 @@ function renderBkash(){
   window.D.bkash=window.D.bkash||[];
   var q=(document.getElementById('bk-search')?document.getElementById('bk-search').value||'':'').toLowerCase();
   var tf=document.getElementById('bk-type-filter')?document.getElementById('bk-type-filter').value||'':'';
-  var df=document.getElementById('bk-due-filter')?document.getElementById('bk-due-filter').value||'':'';
   var list=window.D.bkash.filter(function(i){
     if(tf&&i.type!==tf) return false;
-    var due=bkDue(i);
-    if(df==='due'&&due<=0) return false;
-    if(df==='paid'&&due>0) return false;
     return !q||(i.customer||'').toLowerCase().includes(q)||(i.note||'').toLowerCase().includes(q);
   });
   var tb=document.getElementById('bk-body');
   if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){
-    var due=bkDue(i); var paid=i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0);
-    return '<tr><td>'+i.date+'</td><td><span class="badge '+(BK_BADGE[i.type]||'badge-blue')+'">'+(BK_LABELS[i.type]||i.type)+'</span></td><td>'+tk(i.amount)+'</td><td style="color:var(--green);font-weight:600;">'+tk(i.commission)+'</td><td>'+tk(paid)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td><td>'+(i.customer||'—')+'</td><td>'+(i.phone||'—')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="payBkashDue('+i.id+')">💳 জমা</button>':'')+'<button class="btn btn-danger" onclick="deleteBkash('+i.id+')">🗑 ডিলিট</button></td></tr>';
-  }).join(''):'<tr class="empty-row"><td colspan="10">এখনো কোনো লেনদেন যোগ হয়নি</td></tr>';
-
-  var dueList=window.D.bkash.filter(function(i){ return bkDue(i)>0; });
-  var db=document.getElementById('bk-due-body');
-  if(db) db.innerHTML=dueList.length?dueList.slice().reverse().map(function(i){
-    var due=bkDue(i); var paid=i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0);
-    return '<tr><td>'+i.date+'</td><td><span class="badge '+(BK_BADGE[i.type]||'badge-blue')+'">'+(BK_LABELS[i.type]||i.type)+'</span></td><td>'+(i.customer||'—')+'</td><td>'+(i.phone||'—')+'</td><td>'+tk(i.amount)+'</td><td>'+tk(paid)+'</td><td class="due-tag">'+tk(due)+'</td><td class="action-cell"><button class="btn btn-pay" onclick="payBkashDue('+i.id+')">💳 জমা নিন</button></td></tr>';
-  }).join(''):'<tr class="empty-row"><td colspan="8" style="color:var(--green)">✅ কোনো বাকি নেই!</td></tr>';
+    var paid=i.paid!==undefined&&i.paid!==null&&i.paid!==''?Number(i.paid):Number(i.amount||0);
+    return '<tr><td>'+i.date+'</td><td><span class="badge '+(BK_BADGE[i.type]||'badge-blue')+'">'+(BK_LABELS[i.type]||i.type)+'</span></td><td>'+tk(i.amount)+'</td><td style="color:var(--green);font-weight:600;">'+tk(i.commission)+'</td><td>'+tk(paid)+'</td><td>'+(i.customer||'—')+'</td><td>'+(i.phone||'—')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell"><button class="btn btn-danger" onclick="deleteBkash('+i.id+')">🗑 ডিলিট</button></td></tr>';
+  }).join(''):'<tr class="empty-row"><td colspan="9">এখনো কোনো লেনদেন যোগ হয়নি</td></tr>';
 
   var now2=new Date();
   var todayList=window.D.bkash.filter(function(i){ return new Date(i.date).toDateString()===now2.toDateString(); });
@@ -1704,8 +1699,6 @@ function renderBkash(){
   if(document.getElementById('bk-month-commission')) document.getElementById('bk-month-commission').textContent=tk(monthCommission);
   if(document.getElementById('bk-month-volume')) document.getElementById('bk-month-volume').textContent=tk(monthVolume);
   if(document.getElementById('bk-all-commission')) document.getElementById('bk-all-commission').textContent=tk(allCommission);
-  var totalBkDue=window.D.bkash.reduce(function(s,i){ return s+Math.max(bkDue(i),0); },0);
-  if(document.getElementById('bk-total-due')) document.getElementById('bk-total-due').textContent=tk(totalBkDue);
   if(document.getElementById('dash-bkash-commission')) document.getElementById('dash-bkash-commission').textContent=tk(monthCommission);
 
   var rangeList=window.D.bkash.filter(function(i){ return bkInSelectedRange(i.date); });
@@ -1975,12 +1968,133 @@ function printHouseholdSummary(){
   setTimeout(function(){ inv.innerHTML=''; },1500);
 }
 
-// ══ BAKI ══
+// ══ বাকি পাওনা (একত্রিত: বিক্রয় + বিকাশ/বিল + মেরামত) ══
+var BAKI_SOURCE_LABEL={sale:'🛍️ বিক্রয়',bkash:'📱 বিকাশ/বিল',repair:'🔧 মেরামত'};
+var BAKI_SOURCE_BADGE={sale:'badge-green',bkash:'badge-blue',repair:''};
+function bakiUnifiedList(){
+  var out=[];
+  (window.D.sales||[]).forEach(function(i){
+    var due=Number(i.amount||0)-Number(i.paid||0);
+    if(due>0) out.push({ source:'sale', id:i.id, date:i.date, customer:i.customer, phone:i.phone, desc:'বিক্রয়'+(i.prodId?' ('+i.prodId+')':''), total:Number(i.amount||0), paid:Number(i.paid||0), due:due });
+  });
+  (window.D.bkash||[]).forEach(function(i){
+    var due=bkDue(i);
+    if(due>0){
+      var paid=(i.paid!==undefined&&i.paid!==null&&i.paid!=='')?Number(i.paid):Number(i.amount||0);
+      out.push({ source:'bkash', id:i.id, date:i.date, customer:i.customer||'N/A', phone:i.phone, desc:(BK_LABELS[i.type]||i.type), total:Number(i.amount||0), paid:paid, due:due });
+    }
+  });
+  (window.D.repairs||[]).forEach(function(i){
+    var total=repTotal(i); var due=Math.max(total-Number(i.paid||0),0);
+    if(due>0) out.push({ source:'repair', id:i.id, date:i.date, customer:i.customer, phone:i.phone, desc:'মেরামত: '+i.type+(i.problem?' — '+i.problem:''), total:total, paid:Number(i.paid||0), due:due });
+  });
+  out.sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
+  return out;
+}
 function renderBaki(){
   var q=(document.getElementById('b-search').value||'').toLowerCase();
-  var list=window.D.sales.filter(function(i){ return (Number(i.amount)-Number(i.paid))>0&&(!q||i.customer.toLowerCase().includes(q)); });
+  var sf=document.getElementById('b-source-filter')?document.getElementById('b-source-filter').value||'':'';
+  var all=bakiUnifiedList();
+  var list=all.filter(function(i){
+    if(sf&&i.source!==sf) return false;
+    return !q||(i.customer||'').toLowerCase().includes(q);
+  });
   var tb=document.getElementById('b-body');
-  tb.innerHTML=list.length?list.map(function(i){ var due=Number(i.amount)-Number(i.paid); return '<tr><td>'+i.date+'</td><td>'+i.customer+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(i.amount)+'</td><td>'+tk(i.paid)+'</td><td class="due-tag">'+tk(due)+'</td><td class="action-cell"><button class="btn btn-pay" onclick="openPayModal('+i.id+')">💳 পরিশোধ</button><button class="btn btn-print" onclick="printInvoice('+i.id+')">🖨️ রসিদ</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="7" style="color:var(--green)">✅ কোনো বাকি বকেয়া নেই!</td></tr>';
+  tb.innerHTML=list.length?list.map(function(i){
+    return '<tr><td><input type="checkbox" class="baki-row-check" value="'+i.source+':'+i.id+'" onchange="updateSelectedCountBaki()"></td>'+
+      '<td>'+i.date+'</td>'+
+      '<td><span class="badge '+(BAKI_SOURCE_BADGE[i.source]||'badge-blue')+'">'+BAKI_SOURCE_LABEL[i.source]+'</span></td>'+
+      '<td><b>'+i.customer+'</b></td><td>'+(i.phone||'N/A')+'</td>'+
+      '<td style="color:var(--muted);font-size:.82rem;">'+i.desc+'</td>'+
+      '<td>'+tk(i.total)+'</td><td>'+tk(i.paid)+'</td>'+
+      '<td class="due-tag">'+tk(i.due)+'</td>'+
+      '<td class="action-cell"><button class="btn btn-pay" onclick="bakiPay(\''+i.source+'\','+i.id+')">💳 পরিশোধ</button></td></tr>';
+  }).join(''):'<tr class="empty-row"><td colspan="10" style="color:var(--green)">✅ কোনো বাকি বকেয়া নেই!</td></tr>';
+
+  var totalDue=all.reduce(function(s,i){ return s+i.due; },0);
+  var custSet={}; all.forEach(function(i){ custSet[(i.customer||'').trim().toLowerCase()]=true; });
+  var saleDue=all.filter(function(i){ return i.source==='sale'; }).reduce(function(s,i){ return s+i.due; },0);
+  var bkashDue=all.filter(function(i){ return i.source==='bkash'; }).reduce(function(s,i){ return s+i.due; },0);
+  var repairDue=all.filter(function(i){ return i.source==='repair'; }).reduce(function(s,i){ return s+i.due; },0);
+  if(document.getElementById('baki-total-due')) document.getElementById('baki-total-due').textContent=tk(totalDue);
+  if(document.getElementById('baki-total-customers')) document.getElementById('baki-total-customers').textContent=Object.keys(custSet).length.toLocaleString('bn-BD');
+  if(document.getElementById('baki-sale-due')) document.getElementById('baki-sale-due').textContent=tk(saleDue);
+  if(document.getElementById('baki-bkash-due')) document.getElementById('baki-bkash-due').textContent=tk(bkashDue);
+  if(document.getElementById('baki-repair-due')) document.getElementById('baki-repair-due').textContent=tk(repairDue);
+}
+function toggleSelectAllBaki(cb){
+  var checks=document.querySelectorAll('.baki-row-check');
+  checks.forEach(function(c){ c.checked=cb.checked; });
+  var h=document.getElementById('baki-head-check');
+  var t=document.getElementById('baki-select-all');
+  if(h) h.checked=cb.checked;
+  if(t) t.checked=cb.checked;
+  updateSelectedCountBaki();
+}
+function updateSelectedCountBaki(){
+  var checks=document.querySelectorAll('.baki-row-check:checked');
+  var el=document.getElementById('baki-selected-count');
+  if(el) el.textContent=checks.length>0?checks.length+' টি সিলেক্ট হয়েছে':'';
+}
+// একই বা ভিন্ন উৎস থেকে সিলেক্ট করা সব বাকি এন্ট্রি একসাথে এক রশিদে প্রিন্ট
+function printSelectedBaki(){
+  var checks=document.querySelectorAll('.baki-row-check:checked');
+  if(checks.length===0){ alert('কমপক্ষে একটি এন্ট্রি সিলেক্ট করুন!'); return; }
+  var all=bakiUnifiedList();
+  var selected=Array.from(checks).map(function(c){
+    var parts=c.value.split(':'); var src=parts[0], id=Number(parts[1]);
+    return all.find(function(i){ return i.source===src&&i.id===id; });
+  }).filter(Boolean);
+  if(!selected.length) return;
+
+  var totalAmt=selected.reduce(function(s,i){ return s+i.total; },0);
+  var totalPaid=selected.reduce(function(s,i){ return s+i.paid; },0);
+  var totalDue=selected.reduce(function(s,i){ return s+i.due; },0);
+  var custName=selected[0].customer, custPhone=selected[0].phone;
+
+  var rows=selected.map(function(i,idx){
+    return '<tr style="border-bottom:1px solid #e2e2e2;">'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+i.desc+' <span style="color:#888;font-size:.72rem;">('+i.date+')</span></td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">১</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+i.total.toLocaleString()+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+i.total.toLocaleString()+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var inv=document.getElementById('invoice-area');
+  var receiptHtml='<div style="max-width:680px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:12px;border:1px solid #ccc;">'+
+    seInvoiceHeader('DUE-'+Date.now().toString().slice(-6))+
+    seInvoiceCustomer(custName,custPhone,new Date().toLocaleDateString('bn-BD'))+
+    '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
+    '<thead><tr style="background:#f3f4f6;">'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+totalAmt.toLocaleString()+'</td></tr>'+
+    invoiceWordsRow(totalAmt)+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">সর্বমোট বাকি</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '</tfoot>'+
+    '</table>'+
+    seInvoiceFooter('বিক্রয়, বিকাশ/বিল সার্ভিস ও মেরামত সার্ভিসের একত্রিত বাকির রশিদ')+
+    '</div>';
+  inv.innerHTML='<div class="print-page"><div class="receipt-col">'+receiptHtml+'</div><div class="cut-divider"></div><div class="receipt-col">'+receiptHtml+'</div></div>';
+  window.print();
+  setTimeout(function(){ inv.innerHTML=''; },1500);
+}
+// উৎস অনুযায়ী পরিশোধ ফর্মে পাঠানো
+function bakiPay(source,id){
+  if(source==='sale') openPayModal(id);
+  else if(source==='bkash') payBkashDue(id);
+  else if(source==='repair') openRepairPayModal(id);
 }
 
 // ══ PAY MODAL ══
@@ -2003,6 +2117,7 @@ function confirmPay(){
   saveToFirebase();
   closePayModal();
   showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' পরিশোধ সম্পন্ন! বাকি: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
+  renderSales(); renderBaki(); updateAll();
 }
 function closePayModal(){ document.getElementById('pay-modal').classList.remove('open'); }
 document.getElementById('pay-modal').addEventListener('click',function(e){ if(e.target===this) closePayModal(); });
@@ -2356,26 +2471,19 @@ function renderRepair(){
   var q=(document.getElementById('r-search')?document.getElementById('r-search').value||'':'').toLowerCase();
   var tf=document.getElementById('r-type-filter')?document.getElementById('r-type-filter').value||'':'';
   var sf=document.getElementById('r-status-filter')?document.getElementById('r-status-filter').value||'':'';
-  var df=document.getElementById('r-due-filter')?document.getElementById('r-due-filter').value||'':'';
   var list=window.D.repairs.filter(function(i){
-    var due=Math.max(repTotal(i)-Number(i.paid||0),0);
-    if(df==='due'&&due<=0) return false;
-    if(df==='paid'&&due>0) return false;
     if(tf&&i.type!==tf) return false;
     if(sf&&i.status!==sf) return false;
     return !q||i.customer.toLowerCase().includes(q)||(i.type||'').toLowerCase().includes(q)||(i.serial||'').toLowerCase().includes(q);
   });
   var totalAmt=list.reduce(function(s,i){ return s+repTotal(i); },0);
   var totalCash=list.reduce(function(s,i){ return s+Number(i.paid||0); },0);
-  var totalDue=list.reduce(function(s,i){ return s+Math.max(repTotal(i)-Number(i.paid||0),0); },0);
   if(document.getElementById('rep-total-count')) document.getElementById('rep-total-count').textContent=list.length.toLocaleString('bn-BD');
   if(document.getElementById('rep-total-amount')) document.getElementById('rep-total-amount').textContent=tk(totalAmt);
   if(document.getElementById('rep-total-cash')) document.getElementById('rep-total-cash').textContent=tk(totalCash);
-  if(document.getElementById('rep-total-due')) document.getElementById('rep-total-due').textContent=tk(totalDue);
   var sColor={'চলমান':'badge-blue','সম্পন্ন':'badge-green','ডেলিভারি দেওয়া হয়েছে':'badge-green','বাতিল':''};
   var tb=document.getElementById('r-body'); if(!tb) return;
   tb.innerHTML=list.length?list.slice().reverse().map(function(i){
-    var due=Math.max(repTotal(i)-Number(i.paid||0),0);
     var partsNote=(i.parts&&i.parts.length)?' <span style="color:var(--cyan);font-size:.75rem;">('+i.parts.length+'টি পার্স)</span>':'';
     return '<tr>'+
       '<td><input type="checkbox" class="r-row-check" value="'+i.id+'" onchange="updateSelectedCount()"></td>'+
@@ -2384,10 +2492,8 @@ function renderRepair(){
       '<td>'+i.type+partsNote+'</td><td style="color:var(--muted);font-size:.8rem;">'+(i.problem||'—')+'</td>'+
       '<td style="color:var(--green);font-weight:700;">'+tk(repTotal(i))+'</td>'+
       '<td>'+tk(i.paid||0)+'</td>'+
-      '<td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ পরিশোধিত')+'</td>'+
       '<td><span class="badge '+(sColor[i.status]||'badge-blue')+'">'+i.status+'</span></td>'+
       '<td class="action-cell">'+
-        (due>0?'<button class="btn btn-pay" onclick="openRepairPayModal('+i.id+')">💳 পরিশোধ</button>':'')+
         '<button class="btn btn-print" onclick="printRepairInvoice('+i.id+')">🖨️ রসিদ</button>'+
         '<button class="btn btn-danger" onclick="deleteRepair('+i.id+')">🗑</button>'+
       '</td></tr>';
@@ -2416,7 +2522,7 @@ function confirmRepairPay(){
   rep.paid=Math.min(Number(rep.paid||0)+amt,total);
   rep.due=Math.max(total-rep.paid,0);
   rep.status=newStatus;
-  saveToFirebase(); closeRepairPayModal(); renderRepair(); updateAll();
+  saveToFirebase(); closeRepairPayModal(); renderRepair(); renderBaki(); updateAll();
   showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' পরিশোধ সম্পন্ন! বাকি: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
 }
 
@@ -2720,8 +2826,8 @@ function exportCSV(type){
     rows=[['ক্রম নং','তারিখ','কাস্টমার','ফোন','কাজের ধরণ','সমস্যা','সার্ভিস চার্জ','ব্যবহৃত পার্স','পার্সের বিক্রয়মূল্য','মোট বিল','নগদ','বাকি','স্ট্যাটাস']];
     (window.D.repairs||[]).forEach(function(i){ var partsDesc=(i.parts||[]).map(function(p){ return p.name+'x'+p.qty; }).join('; '); var partsTotal=(i.parts||[]).reduce(function(s,p){ return s+Number(p.price||0)*Number(p.qty||1); },0); rows.push([i.serial,i.date,i.customer,i.phone,i.type,i.problem||'',i.rate||0,partsDesc,partsTotal,repTotal(i),i.paid||0,Math.max(repTotal(i)-Number(i.paid||0),0),i.status]); }); filename='মেরামত.csv';
   } else if(type==='baki'){
-    rows=[['তারিখ','গ্রাহক','ফোন','মোট','নগদ','বাকি']];
-    window.D.sales.filter(function(i){ return (Number(i.amount)-Number(i.paid))>0; }).forEach(function(i){ rows.push([i.date,i.customer,i.phone,i.amount,i.paid,Number(i.amount)-Number(i.paid)]); }); filename='বাকি.csv';
+    rows=[['তারিখ','ধরন','গ্রাহক','ফোন','বিবরণ','মোট','জমা','বাকি']];
+    bakiUnifiedList().forEach(function(i){ rows.push([i.date,BAKI_SOURCE_LABEL[i.source]||i.source,i.customer,i.phone||'',i.desc,i.total,i.paid,i.due]); }); filename='বাকি_পাওনা.csv';
   } else if(type==='expenses'){
     rows=[['তারিখ','খাত','পরিমাণ','নোট']];
     (window.D.expenses||[]).forEach(function(i){ rows.push([i.date,i.category,i.amount,i.note||'']); }); filename='দোকান_খরচ.csv';
