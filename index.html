@@ -1968,6 +1968,11 @@ function printHouseholdSummary(){
   setTimeout(function(){ inv.innerHTML=''; },1500);
 }
 
+function prodNameById(prodId){
+  if(!prodId) return '';
+  var s=(window.D.stock||[]).find(function(x){ return (x.stId||'').toLowerCase().trim()===(prodId||'').toLowerCase().trim(); });
+  return (s&&s.name&&s.name.toLowerCase().trim()!==prodId.toLowerCase().trim())?' — '+s.name:'';
+}
 // ══ বাকি পাওনা (একত্রিত: বিক্রয় + বিকাশ/বিল + মেরামত) ══
 var BAKI_SOURCE_LABEL={sale:'🛍️ বিক্রয়',bkash:'📱 বিকাশ/বিল',repair:'🔧 মেরামত'};
 var BAKI_SOURCE_BADGE={sale:'badge-green',bkash:'badge-blue',repair:''};
@@ -1975,7 +1980,7 @@ function bakiUnifiedList(){
   var out=[];
   (window.D.sales||[]).forEach(function(i){
     var due=Number(i.amount||0)-Number(i.paid||0);
-    if(due>0) out.push({ source:'sale', id:i.id, date:i.date, customer:i.customer, phone:i.phone, desc:'বিক্রয়'+(i.prodId?' ('+i.prodId+')':''), total:Number(i.amount||0), paid:Number(i.paid||0), due:due });
+    if(due>0) out.push({ source:'sale', id:i.id, date:i.date, customer:i.customer, phone:i.phone, desc:'বিক্রয়'+(i.prodId?' ('+i.prodId+prodNameById(i.prodId)+')':''), total:Number(i.amount||0), paid:Number(i.paid||0), due:due });
   });
   (window.D.bkash||[]).forEach(function(i){
     var due=bkDue(i);
@@ -2068,20 +2073,20 @@ function printSelectedBaki(){
     seInvoiceCustomer(custName,custPhone,new Date().toLocaleDateString('bn-BD'))+
     '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
     '<thead><tr style="background:#f3f4f6;">'+
-    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:28px;text-align:center;">ক্রম</th>'+
     '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
-    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
-    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
-    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
+    '<th style="padding:5px 4px;border:1px solid #555;width:40px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 4px;border:1px solid #555;width:65px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 4px;border:1px solid #555;width:65px;text-align:center;">টাকা</th>'+
     '</tr></thead><tbody>'+rows+'</tbody>'+
     '<tfoot>'+
     '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
-    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+totalAmt.toLocaleString()+'</td></tr>'+
+    '<td style="padding:5px 4px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+totalAmt.toLocaleString()+'</td></tr>'+
     invoiceWordsRow(totalAmt)+
     '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
-    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
+    '<td style="padding:5px 4px;border:1px solid #555;text-align:right;color:green;">৳ '+totalPaid.toLocaleString()+'</td></tr>'+
     '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">সর্বমোট বাকি</td>'+
-    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '<td style="padding:5px 4px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(totalDue>0?'red':'green')+';">'+(totalDue>0?'৳ '+totalDue.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
     '</tfoot>'+
     '</table>'+
     seInvoiceFooter('বিক্রয়, বিকাশ/বিল সার্ভিস ও মেরামত সার্ভিসের একত্রিত বাকির রশিদ')+
