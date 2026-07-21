@@ -358,6 +358,7 @@ tbody tr:hover{background:var(--surface2);}
           <div class="search-box"><input type="text" id="st-search" placeholder="পণ্য খুঁজুন..." oninput="renderStock()"></div>
           <select id="st-filter" onchange="renderStock()" style="width:auto;"><option value="">সব পণ্য</option><option value="low">শুধু রি-অর্ডার প্রয়োজন</option></select>
           <button class="btn btn-export" onclick="exportCSV('stock')">⬇️ Excel Export</button>
+          <button class="btn btn-print" onclick="printStockList()">🖨️ স্টক PDF প্রিন্ট</button>
         </div>
         <div class="table-wrap"><table><thead><tr><th>আইডি</th><th>পণ্য</th><th>পরিমাণ</th><th>মূল্য</th><th>রি-অর্ডার লেভেল</th><th>অবস্থা</th><th>অ্যাকশন</th></tr></thead><tbody id="st-body"></tbody></table></div>
       </div>
@@ -1968,6 +1969,69 @@ function printHouseholdSummary(){
   setTimeout(function(){ inv.innerHTML=''; },1500);
 }
 
+function printStockList(){
+  var D=window.D;
+  var q=(document.getElementById('st-search')&&document.getElementById('st-search').value||'').toLowerCase().trim();
+  var f=document.getElementById('st-filter')&&document.getElementById('st-filter').value||'';
+  var list=(D.stock||[]).filter(function(i){
+    if(f==='low' && !isLowStock(i)) return false;
+    if(q && !((i.stId||'').toLowerCase().indexOf(q)>-1 || (i.name||'').toLowerCase().indexOf(q)>-1)) return false;
+    return true;
+  });
+  list=list.slice().sort(function(a,b){ return (a.stId||'').localeCompare(b.stId||''); });
+
+  var totalQty=list.reduce(function(s,i){ return s+Number(i.qty||0); },0);
+  var totalValue=list.reduce(function(s,i){ return s+Number(i.value||0); },0);
+  var lowCount=list.filter(isLowStock).length;
+
+  var genDate=new Date().toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'});
+  var filterLabel=f==='low'?' (শুধু রি-অর্ডার প্রয়োজন)':'';
+
+  var rows=list.length?list.map(function(i,idx){
+    var low=isLowStock(i);
+    return '<tr>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+i.stId+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+i.name+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+Number(i.qty).toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:right;">'+tk(i.value)+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+Number(i.reorderLevel||0).toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;color:'+(low?'#c00':'#080')+';">'+(low?'⚠️ রি-অর্ডার প্রয়োজন':'✓ পর্যাপ্ত')+'</td>'+
+    '</tr>';
+  }).join(''):'<tr><td colspan="7" style="padding:8px;border:1px solid #555;text-align:center;color:#888;">কোনো পণ্য পাওয়া যায়নি</td></tr>';
+
+  var inv=document.getElementById('invoice-area');
+  var html='<div style="max-width:900px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:16px;border:1px solid #ccc;">'+
+    seInvoiceHeader('স্টক তালিকা')+
+    '<div style="text-align:center;margin:4px 0 14px;">'+
+      '<h2 style="margin:0;font-size:1.15rem;">সম্পূর্ণ স্টক তালিকা'+filterLabel+'</h2>'+
+      '<p style="margin:2px 0 0;color:#666;font-size:.76rem;">তৈরির তারিখ: '+genDate+'</p>'+
+    '</div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:14px;">'+
+      '<thead><tr style="background:#f3f4f6;">'+
+        '<th style="padding:6px;border:1px solid #555;width:34px;">ক্রম</th>'+
+        '<th style="padding:6px;border:1px solid #555;">আইডি</th>'+
+        '<th style="padding:6px;border:1px solid #555;text-align:left;padding-left:8px;">পণ্যের নাম</th>'+
+        '<th style="padding:6px;border:1px solid #555;">পরিমাণ</th>'+
+        '<th style="padding:6px;border:1px solid #555;">মূল্য</th>'+
+        '<th style="padding:6px;border:1px solid #555;">রি-অর্ডার লেভেল</th>'+
+        '<th style="padding:6px;border:1px solid #555;">অবস্থা</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody>'+
+    '</table>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:14px;">'+
+      '<tbody>'+
+        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">মোট পণ্য (আইটেম সংখ্যা)</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+list.length.toLocaleString('bn-BD')+' টি</td></tr>'+
+        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">মোট পরিমাণ (ইউনিট)</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+totalQty.toLocaleString('bn-BD')+' টি</td></tr>'+
+        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">= মোট স্টক মূল্য</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+tk(totalValue)+'</td></tr>'+
+        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;color:#c00;">রি-অর্ডার প্রয়োজন এমন পণ্য</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;color:#c00;">'+lowCount.toLocaleString('bn-BD')+' টি</td></tr>'+
+      '</tbody>'+
+    '</table>'+
+    seInvoiceFooter('')+
+  '</div>';
+  inv.innerHTML=html;
+  window.print();
+  setTimeout(function(){ inv.innerHTML=''; },1500);
+}
 function prodNameById(prodId){
   if(!prodId) return '';
   var s=(window.D.stock||[]).find(function(x){ return (x.stId||'').toLowerCase().trim()===(prodId||'').toLowerCase().trim(); });
