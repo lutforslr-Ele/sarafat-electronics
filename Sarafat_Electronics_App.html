@@ -358,7 +358,6 @@ tbody tr:hover{background:var(--surface2);}
           <div class="search-box"><input type="text" id="st-search" placeholder="পণ্য খুঁজুন..." oninput="renderStock()"></div>
           <select id="st-filter" onchange="renderStock()" style="width:auto;"><option value="">সব পণ্য</option><option value="low">শুধু রি-অর্ডার প্রয়োজন</option></select>
           <button class="btn btn-export" onclick="exportCSV('stock')">⬇️ Excel Export</button>
-          <button class="btn btn-print" onclick="printStockList()">🖨️ স্টক PDF প্রিন্ট</button>
         </div>
         <div class="table-wrap"><table><thead><tr><th>আইডি</th><th>পণ্য</th><th>পরিমাণ</th><th>মূল্য</th><th>রি-অর্ডার লেভেল</th><th>অবস্থা</th><th>অ্যাকশন</th></tr></thead><tbody id="st-body"></tbody></table></div>
       </div>
@@ -966,6 +965,24 @@ tbody tr:hover{background:var(--surface2);}
   </div>
 </div>
 
+<!-- STOCK EDIT MODAL -->
+<div class="modal-overlay" id="stock-edit-modal">
+  <div class="modal">
+    <div class="modal-title">✏️ স্টক এন্ট্রি এডিট করুন</div>
+    <input type="hidden" id="st-edit-id">
+    <div class="form-group"><label>পণ্যের আইডি</label><input type="text" id="st-edit-stid" readonly></div>
+    <div class="form-group"><label>পণ্যের নাম</label><input type="text" id="st-edit-name" placeholder="নতুন পণ্যের নাম লিখুন"></div>
+    <div class="form-group"><label>পরিমাণ (টি)</label><input type="number" id="st-edit-qty" min="0"></div>
+    <div class="form-group"><label>স্টক মূল্য (৳)</label><input type="number" id="st-edit-value" min="0"></div>
+    <div class="form-group"><label>রি-অর্ডার লেভেল (টি)</label><input type="number" id="st-edit-reorder" min="0"></div>
+    <p style="margin:2px 0 0;color:var(--muted);font-size:.78rem;">💡 পুরনো পণ্য শেষ হয়ে গেলে এখানে নাম, পরিমাণ ও মূল্য বদলে একই আইডিতে নতুন পণ্য চালু করতে পারবেন।</p>
+    <div class="modal-btns">
+      <button class="btn btn-success" onclick="confirmStockEdit()">✅ সংরক্ষণ করুন</button>
+      <button class="btn" onclick="closeStockEditModal()" style="background:var(--surface2);color:var(--muted);">বাতিল</button>
+    </div>
+  </div>
+</div>
+
 <div id="invoice-area"></div>
 <div class="toast" id="toast"></div>
 
@@ -1431,7 +1448,9 @@ function fillDateFilter(){
 function addSale(e){
   e.preventDefault();
   var qty=Number(document.getElementById('s-qty').value)||1;
-  var item={ id:Date.now(), date:document.getElementById('s-date').value, prodId:document.getElementById('s-prod-id').value, customer:document.getElementById('s-customer').value, phone:document.getElementById('s-phone').value||'N/A', qty:qty, amount:document.getElementById('s-amount').value, paid:document.getElementById('s-paid').value, payMethod:document.getElementById('s-pay-method').value };
+  var pid=document.getElementById('s-prod-id').value;
+  var stockItem=(window.D.stock||[]).find(function(x){ return (x.stId||'').toLowerCase().trim()===(pid||'').toLowerCase().trim(); });
+  var item={ id:Date.now(), date:document.getElementById('s-date').value, prodId:pid, prodName:stockItem?stockItem.name:'', customer:document.getElementById('s-customer').value, phone:document.getElementById('s-phone').value||'N/A', qty:qty, amount:document.getElementById('s-amount').value, paid:document.getElementById('s-paid').value, payMethod:document.getElementById('s-pay-method').value };
   window.D.sales.push(item);
   deductStockOnSale(item.prodId,qty);
   saveToFirebase();
@@ -1537,8 +1556,41 @@ function renderStock(){
   var tb=document.getElementById('st-body');
   tb.innerHTML=list.length?list.slice().reverse().map(function(i){
     var low=isLowStock(i);
-    return '<tr><td><span class="badge badge-blue">'+i.stId+'</span></td><td>'+i.name+'</td><td>'+Number(i.qty).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.value)+'</td><td>'+Number(i.reorderLevel||0).toLocaleString('bn-BD')+' টি</td><td class="'+(low?'low-stock-tag':'ok-stock-tag')+'">'+(low?'⚠️ রি-অর্ডার প্রয়োজন':'✓ পর্যাপ্ত')+'</td><td class="action-cell"><button class="btn btn-danger" onclick="deleteStock('+i.id+')">🗑 ডিলিট</button></td></tr>';
+    return '<tr><td><span class="badge badge-blue">'+i.stId+'</span></td><td>'+i.name+'</td><td>'+Number(i.qty).toLocaleString('bn-BD')+' টি</td><td>'+tk(i.value)+'</td><td>'+Number(i.reorderLevel||0).toLocaleString('bn-BD')+' টি</td><td class="'+(low?'low-stock-tag':'ok-stock-tag')+'">'+(low?'⚠️ রি-অর্ডার প্রয়োজন':'✓ পর্যাপ্ত')+'</td><td class="action-cell"><button class="btn btn-pay" onclick="openStockEditModal('+i.id+')">✏️ এডিট</button><button class="btn btn-danger" onclick="deleteStock('+i.id+')">🗑 ডিলিট</button></td></tr>';
   }).join(''):'<tr class="empty-row"><td colspan="7">কোনো স্টক এন্ট্রি নেই</td></tr>';
+}
+function openStockEditModal(id){
+  var idx=window.D.stock.findIndex(function(i){ return i.id===id; });
+  if(idx<0) return;
+  var s=window.D.stock[idx];
+  document.getElementById('st-edit-id').value=id;
+  document.getElementById('st-edit-stid').value=s.stId;
+  document.getElementById('st-edit-name').value=s.name;
+  document.getElementById('st-edit-qty').value=s.qty;
+  document.getElementById('st-edit-value').value=s.value;
+  document.getElementById('st-edit-reorder').value=s.reorderLevel||0;
+  document.getElementById('stock-edit-modal').classList.add('open');
+}
+function closeStockEditModal(){ document.getElementById('stock-edit-modal').classList.remove('open'); }
+function confirmStockEdit(){
+  var id=Number(document.getElementById('st-edit-id').value);
+  var idx=window.D.stock.findIndex(function(i){ return i.id===id; });
+  if(idx<0) return;
+  var oldItem=window.D.stock[idx];
+  var newName=(document.getElementById('st-edit-name').value||'').trim();
+  if(!newName){ alert('পণ্যের নাম লিখুন!'); return; }
+  var isRename=newName.toLowerCase()!==oldItem.name.toLowerCase();
+  if(isRename&&Number(oldItem.qty)>0){
+    if(!confirm('⚠️ "'+oldItem.name+'"-এর এখনো '+oldItem.qty+' টি স্টকে বাকি আছে!\nনাম বদলালে বাকি থাকা এই পুরনো পণ্যের হিসাব নতুন পণ্যের সাথে মিশে যাবে।\n\nআগে থেকেই যদি পুরনো পণ্য শেষ হয়ে থাকে (স্টকে না থাকলেও সংখ্যা এখনো ০ না হয়ে থাকে), তাহলে এগিয়ে যান — নাহলে Cancel করে আগে পরিমাণ ০ করুন।')) return;
+  }
+  window.D.stock[idx].name=newName;
+  window.D.stock[idx].qty=Number(document.getElementById('st-edit-qty').value)||0;
+  window.D.stock[idx].value=Number(document.getElementById('st-edit-value').value)||0;
+  window.D.stock[idx].reorderLevel=Number(document.getElementById('st-edit-reorder').value)||0;
+  saveToFirebase();
+  closeStockEditModal();
+  showToast('✅ স্টক এন্ট্রি আপডেট হয়েছে। পুরনো বিক্রয়/বাকির রশিদ অপরিবর্তিত থাকবে।','green');
+  renderStock(); refreshProdIdDatalist(); updateAll();
 }
 
 // ══ EXPENSES ══
@@ -1969,73 +2021,15 @@ function printHouseholdSummary(){
   setTimeout(function(){ inv.innerHTML=''; },1500);
 }
 
-function printStockList(){
-  var D=window.D;
-  var q=(document.getElementById('st-search')&&document.getElementById('st-search').value||'').toLowerCase().trim();
-  var f=document.getElementById('st-filter')&&document.getElementById('st-filter').value||'';
-  var list=(D.stock||[]).filter(function(i){
-    if(f==='low' && !isLowStock(i)) return false;
-    if(q && !((i.stId||'').toLowerCase().indexOf(q)>-1 || (i.name||'').toLowerCase().indexOf(q)>-1)) return false;
-    return true;
-  });
-  list=list.slice().sort(function(a,b){ return (a.stId||'').localeCompare(b.stId||''); });
-
-  var totalQty=list.reduce(function(s,i){ return s+Number(i.qty||0); },0);
-  var totalValue=list.reduce(function(s,i){ return s+Number(i.value||0); },0);
-  var lowCount=list.filter(isLowStock).length;
-
-  var genDate=new Date().toLocaleDateString('bn-BD',{day:'numeric',month:'long',year:'numeric'});
-  var filterLabel=f==='low'?' (শুধু রি-অর্ডার প্রয়োজন)':'';
-
-  var rows=list.length?list.map(function(i,idx){
-    var low=isLowStock(i);
-    return '<tr>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+i.stId+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+i.name+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+Number(i.qty).toLocaleString('bn-BD')+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:right;">'+tk(i.value)+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+Number(i.reorderLevel||0).toLocaleString('bn-BD')+'</td>'+
-      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;color:'+(low?'#c00':'#080')+';">'+(low?'⚠️ রি-অর্ডার প্রয়োজন':'✓ পর্যাপ্ত')+'</td>'+
-    '</tr>';
-  }).join(''):'<tr><td colspan="7" style="padding:8px;border:1px solid #555;text-align:center;color:#888;">কোনো পণ্য পাওয়া যায়নি</td></tr>';
-
-  var inv=document.getElementById('invoice-area');
-  var html='<div style="max-width:900px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:16px;border:1px solid #ccc;">'+
-    seInvoiceHeader('স্টক তালিকা')+
-    '<div style="text-align:center;margin:4px 0 14px;">'+
-      '<h2 style="margin:0;font-size:1.15rem;">সম্পূর্ণ স্টক তালিকা'+filterLabel+'</h2>'+
-      '<p style="margin:2px 0 0;color:#666;font-size:.76rem;">তৈরির তারিখ: '+genDate+'</p>'+
-    '</div>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:14px;">'+
-      '<thead><tr style="background:#f3f4f6;">'+
-        '<th style="padding:6px;border:1px solid #555;width:34px;">ক্রম</th>'+
-        '<th style="padding:6px;border:1px solid #555;">আইডি</th>'+
-        '<th style="padding:6px;border:1px solid #555;text-align:left;padding-left:8px;">পণ্যের নাম</th>'+
-        '<th style="padding:6px;border:1px solid #555;">পরিমাণ</th>'+
-        '<th style="padding:6px;border:1px solid #555;">মূল্য</th>'+
-        '<th style="padding:6px;border:1px solid #555;">রি-অর্ডার লেভেল</th>'+
-        '<th style="padding:6px;border:1px solid #555;">অবস্থা</th>'+
-      '</tr></thead><tbody>'+rows+'</tbody>'+
-    '</table>'+
-    '<table style="width:100%;border-collapse:collapse;font-size:.86rem;margin-bottom:14px;">'+
-      '<tbody>'+
-        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">মোট পণ্য (আইটেম সংখ্যা)</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+list.length.toLocaleString('bn-BD')+' টি</td></tr>'+
-        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">মোট পরিমাণ (ইউনিট)</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+totalQty.toLocaleString('bn-BD')+' টি</td></tr>'+
-        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;">= মোট স্টক মূল্য</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;">'+tk(totalValue)+'</td></tr>'+
-        '<tr style="font-weight:bold;background:#f6f6f6;"><td style="padding:6px 8px;border:1px solid #555;color:#c00;">রি-অর্ডার প্রয়োজন এমন পণ্য</td><td style="padding:6px 8px;border:1px solid #555;text-align:right;color:#c00;">'+lowCount.toLocaleString('bn-BD')+' টি</td></tr>'+
-      '</tbody>'+
-    '</table>'+
-    seInvoiceFooter('')+
-  '</div>';
-  inv.innerHTML=html;
-  window.print();
-  setTimeout(function(){ inv.innerHTML=''; },1500);
-}
 function prodNameById(prodId){
   if(!prodId) return '';
   var s=(window.D.stock||[]).find(function(x){ return (x.stId||'').toLowerCase().trim()===(prodId||'').toLowerCase().trim(); });
   return (s&&s.name&&s.name.toLowerCase().trim()!==prodId.toLowerCase().trim())?' — '+s.name:'';
+}
+// বিক্রয়ের সময় সংরক্ষিত পণ্যের নামই সবসময় দেখানো হয়, যাতে পরে একই আইডিতে অন্য পণ্য যোগ করলেও পুরনো রশিদ/বাকির হিসাব না বদলায়
+function saleProdNameTag(sale){
+  if(sale.prodName&&sale.prodName.toLowerCase().trim()!==(sale.prodId||'').toLowerCase().trim()) return ' — '+sale.prodName;
+  return prodNameById(sale.prodId); // পুরনো (এই ফিচার আসার আগের) সেলের জন্য ফলব্যাক
 }
 // ══ বাকি পাওনা (একত্রিত: বিক্রয় + বিকাশ/বিল + মেরামত) ══
 var BAKI_SOURCE_LABEL={sale:'🛍️ বিক্রয়',bkash:'📱 বিকাশ/বিল',repair:'🔧 মেরামত'};
@@ -2044,7 +2038,7 @@ function bakiUnifiedList(){
   var out=[];
   (window.D.sales||[]).forEach(function(i){
     var due=Number(i.amount||0)-Number(i.paid||0);
-    if(due>0) out.push({ source:'sale', id:i.id, date:i.date, customer:i.customer, phone:i.phone, desc:'বিক্রয়'+(i.prodId?' ('+i.prodId+prodNameById(i.prodId)+')':''), total:Number(i.amount||0), paid:Number(i.paid||0), due:due });
+    if(due>0) out.push({ source:'sale', id:i.id, date:i.date, customer:i.customer, phone:i.phone, desc:'বিক্রয়'+(i.prodId?' ('+i.prodId+saleProdNameTag(i)+')':''), total:Number(i.amount||0), paid:Number(i.paid||0), due:due });
   });
   (window.D.bkash||[]).forEach(function(i){
     var due=bkDue(i);
@@ -2403,7 +2397,7 @@ function printInvoice(id){
   var sale=window.D.sales.find(function(i){ return i.id===id; }); if(!sale) return;
   var due=Number(sale.amount)-Number(sale.paid);
   var stockItem=(window.D.stock||[]).find(function(s){ return (s.stId||'').toLowerCase().trim()===(sale.prodId||'').toLowerCase().trim(); });
-  var prodName=(stockItem&&stockItem.name)?stockItem.name:(sale.prodId||'পণ্য');
+  var prodName=(sale.prodName&&sale.prodName.trim())?sale.prodName:((stockItem&&stockItem.name)?stockItem.name:(sale.prodId||'পণ্য'));
   var qty=Number(sale.qty||1)||1;
   var unitPrice=Number(sale.amount)/qty;
   var inv=document.getElementById('invoice-area');
@@ -2640,7 +2634,7 @@ function printSelectedSales(){
     var qty=Number(i.qty||1);
     var unit=qty?Number(i.amount||0)/qty:Number(i.amount||0);
     var stockItem=(window.D.stock||[]).find(function(s){ return s.stId===i.prodId; });
-    var name=stockItem?stockItem.name:(i.prodId||'পণ্য');
+    var name=(i.prodName&&i.prodName.trim())?i.prodName:(stockItem?stockItem.name:(i.prodId||'পণ্য'));
     return '<tr style="border-bottom:1px solid #e2e2e2;">'+
       '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1)+'</td>'+
       '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+name+(i.prodId?' <span style="color:#888;font-size:.78rem;">('+i.prodId+')</span>':'')+'</td>'+
