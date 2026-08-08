@@ -930,6 +930,18 @@ tbody tr:hover{background:var(--surface2);}
   </div>
 </div>
 
+<!-- ADVANCE HISTORY MODAL -->
+<div class="modal-overlay" id="advance-history-modal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-title">📜 <span id="advance-history-name"></span> — লেনদেনের বিস্তারিত</div>
+    <div class="table-wrap" style="max-height:340px;overflow-y:auto;"><table><thead><tr><th>তারিখ</th><th>ধরন</th><th>পরিমাণ</th><th>নোট</th></tr></thead><tbody id="advance-history-body"></tbody></table></div>
+    <div style="margin-top:10px;color:var(--muted);font-size:.82rem;" id="advance-history-summary"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeAdvanceHistoryModal()" style="background:var(--surface2);color:var(--muted);">বন্ধ করুন</button>
+    </div>
+  </div>
+</div>
+
 <!-- PAY MODAL -->
 <div class="modal-overlay" id="pay-modal">
   <div class="modal">
@@ -2358,6 +2370,7 @@ function renderBorrowed(){
 function addAdvance(e){
   e.preventDefault();
   var name=document.getElementById('advance-name').value;
+  var dateVal=document.getElementById('advance-date').value;
   var newAmt=Number(document.getElementById('advance-amount').value)||0;
   var newNote=document.getElementById('advance-note').value||'';
   window.D.advance=window.D.advance||[];
@@ -2365,13 +2378,15 @@ function addAdvance(e){
   if(existing&&confirm('"'+name+'"-এর আগের একটা এন্ট্রিতে এখনো ৳'+loanDue(existing).toLocaleString('bn-BD')+' দায় বাকি আছে।\n\nনতুন ৳'+newAmt.toLocaleString('bn-BD')+' কি সেই পুরনো এন্ট্রির সাথে যোগ করে একসাথে রাখবো (মোট বাকি দায় হবে ৳'+(loanDue(existing)+newAmt).toLocaleString('bn-BD')+')?\n\n"OK" করলে যোগ হবে, "Cancel" করলে আলাদা নতুন এন্ট্রি হবে।')){
     existing.amount=Number(existing.amount)+newAmt;
     if(newNote) existing.note=(existing.note?existing.note+' + ':'')+newNote;
+    existing.history=existing.history||[];
+    existing.history.push({ date:dateVal, type:'নিলাম', amount:newAmt, note:newNote });
     saveToFirebase();
     document.getElementById('advance-name').value=''; document.getElementById('advance-phone').value=''; document.getElementById('advance-amount').value=''; document.getElementById('advance-note').value='';
     showToast('✅ আগের এন্ট্রির সাথে যোগ হয়েছে! মোট বাকি দায়: ৳'+loanDue(existing).toLocaleString('bn-BD'),'green');
     renderAdvance();
     return;
   }
-  var item={ id:Date.now(), date:document.getElementById('advance-date').value, name:name, phone:document.getElementById('advance-phone').value||'', amount:newAmt, settled:0, note:newNote };
+  var item={ id:Date.now(), date:dateVal, name:name, phone:document.getElementById('advance-phone').value||'', amount:newAmt, settled:0, note:newNote, history:[{ date:dateVal, type:'নিলাম', amount:newAmt, note:newNote }] };
   window.D.advance.push(item);
   saveToFirebase();
   document.getElementById('advance-name').value=''; document.getElementById('advance-phone').value=''; document.getElementById('advance-amount').value=''; document.getElementById('advance-note').value='';
@@ -2401,6 +2416,8 @@ function confirmAdvanceUse(){
   var it=window.D.advance[idx];
   var due=loanDue(it);
   it.settled=Math.min(loanSettled(it)+amt,loanTotal(it));
+  it.history=it.history||[];
+  it.history.push({ date:new Date().toISOString().slice(0,10), type:'দিলাম (সমাধান)', amount:amt, note:'' });
   saveToFirebase();
   closeAdvancePayModal();
   showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' সমাধান হলো! বাকি দায়: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
@@ -2415,17 +2432,31 @@ function addMoreToAdvance(id){
   it.amount=Number(it.amount)+amt;
   var noteAdd=prompt('কিসের জন্য এই নতুন অগ্রিম? (ঐচ্ছিক)','');
   if(noteAdd) it.note=(it.note?it.note+' + ':'')+noteAdd;
+  it.history=it.history||[];
+  it.history.push({ date:new Date().toISOString().slice(0,10), type:'নিলাম', amount:amt, note:noteAdd||'' });
   saveToFirebase();
   showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' যোগ হলো! মোট বাকি দায়: ৳'+loanDue(it).toLocaleString('bn-BD'),'green');
   renderAdvance();
 }
+function openAdvanceHistoryModal(id){
+  var it=(window.D.advance||[]).find(function(i){ return i.id===id; }); if(!it) return;
+  document.getElementById('advance-history-name').textContent=it.name;
+  var hist=(it.history&&it.history.length)?it.history.slice():[{ date:it.date, type:'নিলাম', amount:loanTotal(it), note:it.note||'' }];
+  hist.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+  var tb=document.getElementById('advance-history-body');
+  tb.innerHTML=hist.map(function(h){ var isGive=h.type.indexOf('দিলাম')===0; return '<tr><td>'+h.date+'</td><td style="color:'+(isGive?'var(--green)':'var(--yellow)')+';">'+h.type+'</td><td>'+tk(h.amount)+'</td><td style="color:var(--muted);">'+(h.note||'—')+'</td></tr>'; }).join('');
+  document.getElementById('advance-history-summary').textContent='মোট নিয়েছি: ৳'+loanTotal(it).toLocaleString('bn-BD')+' | মোট দিয়েছি: ৳'+loanSettled(it).toLocaleString('bn-BD')+' | বর্তমান বাকি দায়: ৳'+loanDue(it).toLocaleString('bn-BD');
+  document.getElementById('advance-history-modal').classList.add('open');
+}
+function closeAdvanceHistoryModal(){ document.getElementById('advance-history-modal').classList.remove('open'); }
+document.getElementById('advance-history-modal').addEventListener('click',function(e){ if(e.target===this) closeAdvanceHistoryModal(); });
 function renderAdvance(){
   window.D.advance=window.D.advance||[];
   var q=(document.getElementById('advance-search')?document.getElementById('advance-search').value||'':'').toLowerCase();
   var f=document.getElementById('advance-filter')?document.getElementById('advance-filter').value||'':'';
   var list=window.D.advance.filter(function(i){ var due=loanDue(i); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.name.toLowerCase().includes(q); });
   var tb=document.getElementById('advance-body');
-  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ সমাধান হয়েছে')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openAdvancePayModal('+i.id+')">💳 সমাধান করলাম</button>':'')+'<button class="btn btn-export" onclick="addMoreToAdvance('+i.id+')">➕ আরও অগ্রিম</button><button class="btn btn-danger" onclick="deleteAdvance('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো অগ্রিম এন্ট্রি নেই</td></tr>';
+  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ সমাধান হয়েছে')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openAdvancePayModal('+i.id+')">💳 সমাধান করলাম</button>':'')+'<button class="btn btn-export" onclick="addMoreToAdvance('+i.id+')">➕ আরও অগ্রিম</button><button class="btn" style="background:rgba(108,99,255,.15);color:#a78bfa;border:1px solid rgba(108,99,255,.3);" onclick="openAdvanceHistoryModal('+i.id+')">📜 বিস্তারিত</button><button class="btn btn-danger" onclick="deleteAdvance('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো অগ্রিম এন্ট্রি নেই</td></tr>';
   var tt=window.D.advance.reduce(function(s,i){ return s+loanTotal(i); },0);
   var ts=window.D.advance.reduce(function(s,i){ return s+loanSettled(i); },0);
   var td=window.D.advance.reduce(function(s,i){ return s+loanDue(i); },0);
