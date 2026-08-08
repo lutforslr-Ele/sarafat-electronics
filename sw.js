@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sarafat-electronics-v23';
+const CACHE_NAME = 'sarafat-electronics-v24';
 const APP_SHELL = [
   './index.html',
   './Sarafat_Electronics_App.html',
