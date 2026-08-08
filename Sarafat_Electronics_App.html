@@ -2357,8 +2357,21 @@ function renderBorrowed(){
 // ══ অগ্রিম গ্রহণ (ADVANCE) ══
 function addAdvance(e){
   e.preventDefault();
-  var item={ id:Date.now(), date:document.getElementById('advance-date').value, name:document.getElementById('advance-name').value, phone:document.getElementById('advance-phone').value||'', amount:Number(document.getElementById('advance-amount').value)||0, settled:0, note:document.getElementById('advance-note').value||'' };
+  var name=document.getElementById('advance-name').value;
+  var newAmt=Number(document.getElementById('advance-amount').value)||0;
+  var newNote=document.getElementById('advance-note').value||'';
   window.D.advance=window.D.advance||[];
+  var existing=window.D.advance.find(function(i){ return i.name.trim().toLowerCase()===name.trim().toLowerCase()&&loanDue(i)>0; });
+  if(existing&&confirm('"'+name+'"-এর আগের একটা এন্ট্রিতে এখনো ৳'+loanDue(existing).toLocaleString('bn-BD')+' দায় বাকি আছে।\n\nনতুন ৳'+newAmt.toLocaleString('bn-BD')+' কি সেই পুরনো এন্ট্রির সাথে যোগ করে একসাথে রাখবো (মোট বাকি দায় হবে ৳'+(loanDue(existing)+newAmt).toLocaleString('bn-BD')+')?\n\n"OK" করলে যোগ হবে, "Cancel" করলে আলাদা নতুন এন্ট্রি হবে।')){
+    existing.amount=Number(existing.amount)+newAmt;
+    if(newNote) existing.note=(existing.note?existing.note+' + ':'')+newNote;
+    saveToFirebase();
+    document.getElementById('advance-name').value=''; document.getElementById('advance-phone').value=''; document.getElementById('advance-amount').value=''; document.getElementById('advance-note').value='';
+    showToast('✅ আগের এন্ট্রির সাথে যোগ হয়েছে! মোট বাকি দায়: ৳'+loanDue(existing).toLocaleString('bn-BD'),'green');
+    renderAdvance();
+    return;
+  }
+  var item={ id:Date.now(), date:document.getElementById('advance-date').value, name:name, phone:document.getElementById('advance-phone').value||'', amount:newAmt, settled:0, note:newNote };
   window.D.advance.push(item);
   saveToFirebase();
   document.getElementById('advance-name').value=''; document.getElementById('advance-phone').value=''; document.getElementById('advance-amount').value=''; document.getElementById('advance-note').value='';
@@ -2393,13 +2406,26 @@ function confirmAdvanceUse(){
   showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' সমাধান হলো! বাকি দায়: ৳'+Math.max(due-amt,0).toLocaleString('bn-BD'),'green');
   renderAdvance();
 }
+function addMoreToAdvance(id){
+  var idx=(window.D.advance||[]).findIndex(function(i){ return i.id===id; }); if(idx<0) return;
+  var it=window.D.advance[idx];
+  var amt=prompt('"'+it.name+'"-এর কাছ থেকে আরও কত টাকা অগ্রিম নিলেন?','');
+  if(amt===null) return;
+  amt=Number(amt); if(!amt||amt<=0){ alert('সঠিক পরিমাণ দিন!'); return; }
+  it.amount=Number(it.amount)+amt;
+  var noteAdd=prompt('কিসের জন্য এই নতুন অগ্রিম? (ঐচ্ছিক)','');
+  if(noteAdd) it.note=(it.note?it.note+' + ':'')+noteAdd;
+  saveToFirebase();
+  showToast('✅ ৳'+amt.toLocaleString('bn-BD')+' যোগ হলো! মোট বাকি দায়: ৳'+loanDue(it).toLocaleString('bn-BD'),'green');
+  renderAdvance();
+}
 function renderAdvance(){
   window.D.advance=window.D.advance||[];
   var q=(document.getElementById('advance-search')?document.getElementById('advance-search').value||'':'').toLowerCase();
   var f=document.getElementById('advance-filter')?document.getElementById('advance-filter').value||'':'';
   var list=window.D.advance.filter(function(i){ var due=loanDue(i); if(f==='due'&&due<=0) return false; if(f==='paid'&&due>0) return false; return !q||i.name.toLowerCase().includes(q); });
   var tb=document.getElementById('advance-body');
-  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ সমাধান হয়েছে')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openAdvancePayModal('+i.id+')">💳 সমাধান করলাম</button>':'')+'<button class="btn btn-danger" onclick="deleteAdvance('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো অগ্রিম এন্ট্রি নেই</td></tr>';
+  if(tb) tb.innerHTML=list.length?list.slice().reverse().map(function(i){ var tot=loanTotal(i); var settled=loanSettled(i); var due=loanDue(i); return '<tr><td>'+i.date+'</td><td>'+i.name+'</td><td>'+(i.phone||'N/A')+'</td><td>'+tk(tot)+'</td><td>'+tk(settled)+'</td><td class="'+(due>0?'due-tag':'paid-tag')+'">'+(due>0?tk(due):'✓ সমাধান হয়েছে')+'</td><td style="color:var(--muted);">'+(i.note||'—')+'</td><td class="action-cell">'+(due>0?'<button class="btn btn-pay" onclick="openAdvancePayModal('+i.id+')">💳 সমাধান করলাম</button>':'')+'<button class="btn btn-export" onclick="addMoreToAdvance('+i.id+')">➕ আরও অগ্রিম</button><button class="btn btn-danger" onclick="deleteAdvance('+i.id+')">🗑</button></td></tr>'; }).join(''):'<tr class="empty-row"><td colspan="8">এখনো কোনো অগ্রিম এন্ট্রি নেই</td></tr>';
   var tt=window.D.advance.reduce(function(s,i){ return s+loanTotal(i); },0);
   var ts=window.D.advance.reduce(function(s,i){ return s+loanSettled(i); },0);
   var td=window.D.advance.reduce(function(s,i){ return s+loanDue(i); },0);
