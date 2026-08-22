@@ -169,6 +169,7 @@ tbody tr:hover{background:var(--surface2);}
     <button class="nav-item" onclick="switchTab('warranty',this)"><span class="icon">🛡️</span> ওয়ারেন্টি ও ড্যামেজ</button>
     <button class="nav-item" onclick="switchTab('pnl',this)"><span class="icon">📈</span> লাভ-ক্ষতি</button>
     <button class="nav-item" onclick="switchTab('repair',this)"><span class="icon">🔧</span> মেরামত সার্ভিস</button>
+    <button class="nav-item" onclick="switchTab('invoice',this)"><span class="icon">🧾</span> ব্লাংক ইনভয়েস</button>
   </nav>
   <div class="sidebar-footer" id="sync-footer">v7.0 · Firebase Sync 🔥</div>
 </aside>
@@ -866,6 +867,36 @@ tbody tr:hover{background:var(--surface2);}
         </tr></thead><tbody id="r-body"></tbody></table></div>
       </div>
     </div>
+
+    <div id="invoice" class="section">
+      <div class="panel">
+        <div class="panel-title">🧾 ব্লাংক ইনভয়েস তৈরি করুন</div>
+        <p style="margin:-8px 0 14px;color:var(--muted);font-size:.78rem;">কাজের বিবরণ লিখে কাস্টমারকে সরাসরি A4 কাগজে (ল্যান্ডস্কেপ, মাঝখান থেকে কাটলে দুই কপি) প্রিন্ট করে দিন। এই ইনভয়েস আলাদাভাবে হিসাবের খাতায় সংরক্ষণ হবে না — শুধু বিল প্রিন্টের জন্য।</p>
+        <div class="form-grid">
+          <div class="form-group"><label>ইনভয়েস নং</label><input type="text" id="inv-no" placeholder="যেমন: INV-101"></div>
+          <div class="form-group"><label>তারিখ</label><input type="date" id="inv-date"></div>
+          <div class="form-group"><label>কাস্টমারের নাম</label><input type="text" id="inv-customer" placeholder="যেমন: করিম সাহেব"></div>
+          <div class="form-group"><label>মোবাইল নম্বর</label><input type="text" id="inv-phone" placeholder="যেমন: 01700000000"></div>
+          <div class="form-group full"><label>ঠিকানা</label><input type="text" id="inv-address" placeholder="কাস্টমারের ঠিকানা (ঐচ্ছিক)"></div>
+        </div>
+
+        <div style="margin:16px 0 8px;font-weight:600;font-size:.88rem;">🛠️ কাজের/পণ্যের বিবরণ</div>
+        <div id="inv-rows"></div>
+        <button type="button" class="btn btn-export" onclick="addInvRow()">➕ আরেকটি লাইন যোগ করুন</button>
+
+        <div class="form-grid" style="margin-top:16px;">
+          <div class="form-group"><label>মোট টাকা (৳) — স্বয়ংক্রিয়</label><input type="text" id="inv-total" readonly style="background:var(--surface2);font-weight:700;"></div>
+          <div class="form-group"><label>নগদ গ্রহণ (৳)</label><input type="number" id="inv-paid" min="0" placeholder="এখন কত টাকা দিয়েছেন" oninput="calcInvTotal()"></div>
+          <div class="form-group"><label>বাকি (৳) — স্বয়ংক্রিয়</label><input type="text" id="inv-due" readonly style="background:var(--surface2);color:var(--red);font-weight:700;"></div>
+          <div class="form-group full"><label>মন্তব্য (ঐচ্ছিক)</label><input type="text" id="inv-note" placeholder="বিলের নিচে যেকোনো মন্তব্য থাকলে লিখুন"></div>
+        </div>
+
+        <div class="btn-row" style="margin-top:14px;">
+          <button type="button" class="btn btn-print" onclick="printBlankInvoice()">🖨️ A4 তে প্রিন্ট (২ কপি)</button>
+          <button type="button" class="btn" style="background:var(--surface2);color:var(--muted);" onclick="clearBlankInvoice()">🗑️ নতুন করে শুরু করুন</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 </div>
@@ -1190,7 +1221,7 @@ function switchTab(id,btn){
   document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   if(btn) btn.classList.add('active');
-  var titles={dashboard:'ড্যাশবোর্ড',purchase:'ক্রয়',sales:'বিক্রয়',stock:'স্টক',baki:'বাকি পাওনা',supplier:'সরবরাহকারী জমা',lent:'টাকা ধার দিয়েছি',borrowed:'টাকা ধার নিয়েছি',advance:'অগ্রিম গ্রহণ',bkash:'বিকাশ ও বিল সার্ভিস',expenses:'দোকান খরচ',household:'সংসারের খরচ',warranty:'ওয়ারেন্টি ও ড্যামেজ',pnl:'লাভ-ক্ষতি',repair:'মেরামত সার্ভিস'};
+  var titles={dashboard:'ড্যাশবোর্ড',purchase:'ক্রয়',sales:'বিক্রয়',stock:'স্টক',baki:'বাকি পাওনা',supplier:'সরবরাহকারী জমা',lent:'টাকা ধার দিয়েছি',borrowed:'টাকা ধার নিয়েছি',advance:'অগ্রিম গ্রহণ',bkash:'বিকাশ ও বিল সার্ভিস',expenses:'দোকান খরচ',household:'সংসারের খরচ',warranty:'ওয়ারেন্টি ও ড্যামেজ',pnl:'লাভ-ক্ষতি',repair:'মেরামত সার্ভিস',invoice:'ব্লাংক ইনভয়েস'};
   document.getElementById('page-title').textContent=titles[id]||id;
   if(id==='purchase'){ renderPurchases(); fillDateFilter(); refreshProdIdDatalist(); checkPurchaseProdId(); }
   if(id==='sales'){ renderSales(); refreshProdIdDatalist(); }
@@ -1206,6 +1237,7 @@ function switchTab(id,btn){
   if(id==='warranty') renderWarranty();
   if(id==='pnl') renderPnl();
   if(id==='repair'){ if(window.D) renderRepair(); renderRepairPartsDraft(); }
+  if(id==='invoice'){ var idEl=document.getElementById('inv-date'); if(idEl&&!idEl.value) idEl.value=new Date().toISOString().slice(0,10); if(!invRows.length) addInvRow(); renderInvRows(); }
 }
 function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); }
 function toggleUserMenu(){ document.getElementById('user-menu').classList.toggle('open'); }
@@ -2911,6 +2943,115 @@ function printRepairInvoice(id){
     '</tfoot>'+
     '</table>'+
     seInvoiceFooter('স্ট্যাটাস: '+rep.status)+
+    '</div>';
+  inv.innerHTML='<div class="print-page"><div class="receipt-col">'+receiptHtml+'</div><div class="cut-divider"></div><div class="receipt-col">'+receiptHtml+'</div></div>';
+  window.print();
+  setTimeout(function(){ inv.innerHTML=''; },1500);
+}
+
+// ══ BLANK INVOICE (ফাঁকা ইনভয়েস - দ্রুত বিল তৈরি) ══
+var invRows=[];
+function addInvRow(){
+  invRows.push({desc:'',qty:1,rate:''});
+  renderInvRows();
+}
+function removeInvRow(idx){
+  invRows.splice(idx,1);
+  renderInvRows();
+}
+function onInvRowChange(idx){
+  var descEl=document.getElementById('inv-desc-'+idx),
+      qtyEl=document.getElementById('inv-qty-'+idx),
+      rateEl=document.getElementById('inv-rate-'+idx);
+  var row=invRows[idx]; if(!row) return;
+  row.desc=descEl?descEl.value:'';
+  row.qty=Number(qtyEl?qtyEl.value:1)||1;
+  row.rate=Number(rateEl?rateEl.value:0)||0;
+  renderInvRowAmount(idx);
+  calcInvTotal();
+}
+function renderInvRowAmount(idx){
+  var row=invRows[idx]; if(!row) return;
+  var el=document.getElementById('inv-amt-'+idx);
+  if(el) el.textContent=tk(Number(row.qty||0)*Number(row.rate||0));
+}
+function renderInvRows(){
+  var c=document.getElementById('inv-rows'); if(!c) return;
+  c.innerHTML=invRows.length?invRows.map(function(row,idx){
+    return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;background:var(--surface2);padding:8px;border-radius:8px;">'+
+      '<input type="text" id="inv-desc-'+idx+'" placeholder="কাজের/পণ্যের বিবরণ লিখুন" value="'+(row.desc||'').replace(/"/g,'&quot;')+'" oninput="onInvRowChange('+idx+')" style="flex:1 1 220px;min-width:160px;">'+
+      '<input type="number" id="inv-qty-'+idx+'" min="1" placeholder="পরিমাণ" value="'+(row.qty||1)+'" oninput="onInvRowChange('+idx+')" style="width:80px;">'+
+      '<input type="number" id="inv-rate-'+idx+'" min="0" placeholder="দর (৳)" value="'+(row.rate||'')+'" oninput="onInvRowChange('+idx+')" style="width:110px;">'+
+      '<span id="inv-amt-'+idx+'" style="min-width:80px;text-align:right;font-weight:600;color:var(--cyan);">'+tk(Number(row.qty||0)*Number(row.rate||0))+'</span>'+
+      '<button type="button" class="btn btn-danger" onclick="removeInvRow('+idx+')" style="padding:6px 10px;">🗑</button>'+
+    '</div>';
+  }).join(''):'<div style="color:var(--muted);font-size:.85rem;">কোনো লাইন যোগ করা হয়নি — "➕ আরেকটি লাইন যোগ করুন" চাপুন</div>';
+  calcInvTotal();
+}
+function invRowsTotal(){
+  return invRows.reduce(function(s,r){ return s+Number(r.qty||0)*Number(r.rate||0); },0);
+}
+function calcInvTotal(){
+  var total=invRowsTotal();
+  var paid=Number((document.getElementById('inv-paid')||{}).value)||0;
+  var totalEl=document.getElementById('inv-total'); if(totalEl) totalEl.value=tk(total);
+  var dueEl=document.getElementById('inv-due'); if(dueEl) dueEl.value=tk(Math.max(total-paid,0));
+}
+function clearBlankInvoice(){
+  if(!confirm('বর্তমান ইনভয়েসের সব তথ্য মুছে নতুন করে শুরু করবেন?')) return;
+  invRows=[];
+  ['inv-no','inv-customer','inv-phone','inv-address','inv-paid','inv-note'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  var dEl=document.getElementById('inv-date'); if(dEl) dEl.value=new Date().toISOString().slice(0,10);
+  addInvRow();
+}
+function printBlankInvoice(){
+  var validRows=invRows.filter(function(r){ return (r.desc&&r.desc.trim()) || Number(r.rate||0)>0; });
+  if(!validRows.length){ alert('কমপক্ষে একটি কাজের বিবরণ লিখুন!'); return; }
+  var custName=(document.getElementById('inv-customer')||{}).value||'';
+  var custPhone=(document.getElementById('inv-phone')||{}).value||'';
+  var custAddress=(document.getElementById('inv-address')||{}).value||'';
+  var invDateEl=document.getElementById('inv-date');
+  var invDate=(invDateEl&&invDateEl.value)?new Date(invDateEl.value).toLocaleDateString('bn-BD'):new Date().toLocaleDateString('bn-BD');
+  var invNo=(document.getElementById('inv-no')||{}).value||('INV-'+Date.now().toString().slice(-6));
+  var paid=Number((document.getElementById('inv-paid')||{}).value)||0;
+  var note=(document.getElementById('inv-note')||{}).value||'';
+  var total=validRows.reduce(function(s,r){ return s+Number(r.qty||0)*Number(r.rate||0); },0);
+  var due=Math.max(total-paid,0);
+
+  var rows=validRows.map(function(r,idx){
+    var amt=Number(r.qty||0)*Number(r.rate||0);
+    return '<tr>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+(idx+1).toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:left;padding-left:8px;">'+(r.desc||'')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">'+Number(r.qty||1).toLocaleString('bn-BD')+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+Number(r.rate||0).toLocaleString()+'</td>'+
+      '<td style="padding:5px 6px;border:1px solid #555;text-align:center;">৳ '+amt.toLocaleString()+'</td>'+
+    '</tr>';
+  }).join('');
+
+  var inv=document.getElementById('invoice-area');
+  var receiptHtml='<div style="max-width:680px;margin:auto;font-family:Arial,sans-serif;color:#111;padding:12px;border:1px solid #ccc;">'+
+    seInvoiceHeader(invNo)+
+    seInvoiceCustomer(custName,custPhone,invDate,custAddress)+
+    '<table style="width:100%;border-collapse:collapse;font-size:.78rem;">'+
+    '<thead><tr style="background:#f3f4f6;">'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:34px;text-align:center;">ক্রম</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;text-align:center;">বিবরণ</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:60px;text-align:center;">পরিমান</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">দর</th>'+
+    '<th style="padding:5px 6px;border:1px solid #555;width:90px;text-align:center;">টাকা</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody>'+
+    '<tfoot>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">মোট টাকা</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">৳ '+total.toLocaleString()+'</td></tr>'+
+    invoiceWordsRow(total)+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;">নগদ পরিশোধ</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;color:green;">৳ '+paid.toLocaleString()+'</td></tr>'+
+    '<tr><td colspan="4" style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;">বাকি</td>'+
+    '<td style="padding:5px 6px;border:1px solid #555;text-align:right;font-weight:bold;color:'+(due>0?'red':'green')+';">'+(due>0?'৳ '+due.toLocaleString():'✓ পরিশোধিত')+'</td></tr>'+
+    '</tfoot>'+
+    '</table>'+
+    seInvoiceFooter(note)+
     '</div>';
   inv.innerHTML='<div class="print-page"><div class="receipt-col">'+receiptHtml+'</div><div class="cut-divider"></div><div class="receipt-col">'+receiptHtml+'</div></div>';
   window.print();
